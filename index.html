@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>King's Bible Institute - Portal</title>
+  
+  <!-- Load Tailwind CSS for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Load React -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  
+  <!-- Load Babel to compile JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans antialiased">
+  
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // --- SVG Icons ---
+    const Icon = ({ name, size = 24, className = "" }) => {
+      const icons = {
+        Menu: <><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></>,
+        X: <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+        BookOpen: <><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>,
+        Edit3: <><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></>,
+        CheckCircle: <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>,
+        PlayCircle: <><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></>,
+        ChevronRight: <><polyline points="9 18 15 12 9 6"/></>,
+        Bookmark: <><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></>,
+        AlertCircle: <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>,
+        Lock: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
+        Award: <><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></>,
+        LayoutDashboard: <><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></>,
+        Check: <><polyline points="20 6 9 17 4 12"/></>
+      };
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          {icons[name]}
+        </svg>
+      );
+    };
+
+    // --- DATA BUILDER HELPERS (Minimizes code footprint) ---
+    const makeTF = (pfx, prompts, answers) => prompts.map((p, i) => ({
+      id: `${pfx}_tf_${i+1}`, type: 'tf', prompt: `${i+1}. ${p}`, correct: answers[i]
+    }));
+    const makeFill = (pfx, prompts, answers) => prompts.map((p, i) => ({
+      id: `${pfx}_fill_${i+1}`, type: 'blank', prompt: `${i+1}. ${p}`, correct: answers[i]
+    }));
+    const makeShort = (pfx, prompts, answers) => prompts.map((p, i) => ({
+      id: `${pfx}_short_${i+1}`, type: 'short', prompt: `${i+1}. ${p}`, correct: answers ? answers[i] : ''
+    }));
+    const makeMatch = (pfx, id, prompt, leftArr, rightArr, keyMap) => ({
+      id: `${pfx}_match_${id}`, type: 'match', prompt,
+      left: leftArr.map((text, i) => ({ id: String(i+1), text })),
+      right: rightArr.map((text, i) => ({ id: String.fromCharCode(97 + i), text })),
+      correct: keyMap
+    });
+    const makeMC = (pfx, prompts, optionsArray, answers) => prompts.map((p, i) => ({
+      id: `${pfx}_mc_${i+1}`, type: 'mc', prompt: `${i+1}. ${p}`, options: optionsArray[i], correct: answers[i]
+    }));
+
+    // --- COURSE DATA ---
+    const courseData = [
+      {
+        id: 0,
+        title: "Introduction to the Books",
+        subtitle: "Foreword, Objectives & Overview",
+        reading: [
+          <h2 className="text-2xl font-bold text-slate-900 mt-4 mb-4 border-b pb-2">Foreword</h2>,
+          "Except for Micah, who addressed his messages to both Israel and Judah, each of these four minor prophets focused his attention on a foreign people. Jonah and Nahum on Nineveh, and Habakkuk on Chaldea. These three minor prophets hardly referred to any nations other than those to whom they prophesied. Despite their prophetic warnings and rebukes, evident throughout each book is the continued stream of restoration promise, as was seen in the books preceding them, with the emphasis on the ultimate restoration of the House of God, and its glory exceeding anything known in the past.",
+          <div className="bg-blue-50 border-l-4 border-blue-600 p-5 my-8 rounded-r-lg shadow-sm">
+            <p className="text-xs font-bold text-blue-900 uppercase tracking-widest mb-2 flex items-center gap-2">
+              <Icon name="Bookmark" size={14} /> Theme Verse
+            </p>
+            <p className="text-xl text-blue-800 italic font-serif leading-relaxed">
+              "For the earth will be filled with the knowledge of the glory of the LORD as the waters cover the sea."
+            </p>
+            <p className="text-right text-blue-900 font-semibold mt-3">— Habakkuk 2:14 (ESV)</p>
+          </div>,
+          <h2 className="text-2xl font-bold text-slate-900 mt-12 mb-4 border-b pb-2">Class Objectives</h2>,
+          "For this course, Jonah, Nahum, and Habakkuk will each be covered in one week, and Micah in two weeks. The sixth week will be for the exam.",
+          <h2 className="text-2xl font-bold text-slate-900 mt-12 mb-4 border-b pb-2">All 133 Messianic Prophecies Were Fulfilled</h2>,
+          "Each detail of a prophecy doubles the chances of the prediction not coming to pass. For instance, a prophecy without detail has one chance in two of fulfillment. It will either be fulfilled or not fulfilled. A prediction with two details has one chance in four of coming to pass. This shows how impossible it would be for many of the lengthy prophecies of Scripture to be fulfilled apart from divine power.",
+          <h2 className="text-2xl font-bold text-slate-900 mt-12 mb-4 border-b pb-2">Introduction to the Books</h2>,
+          "Our four books are characteristic of the men whose names they bear: Jonah, the prophet of catholicity; Micah, the prophet of the poor; Nahum, the prophetic poet; Habakkuk, the prophetic philosopher.",
+          "The word 'catholicity' should be understood without any sectarian overtones, for it really means 'universal', and this is the chief lesson of the book of Jonah. It is the Old Testament counterpart to John 3:16, 'For God so loved the world...' showing that God does care about the masses of humanity.",
+          "Micah, the prophet to the poor, was preeminently a friend of the oppressed. His whole soul went out in loyal sympathy to the downtrodden. He had Amos' passion for justice and Hosea's heart of love. He was the great prophet of social reform.",
+          "Nahum, the poet, is counted a master of Hebrew style. His supreme excellence is his power of description, which is unsurpassed for fiery vigor, glowing color, dramatic impressiveness, and picturesque phraseology. His preeminent idea is the doom about to descend upon Nineveh.",
+          "Habakkuk, the philosopher, was an earnest, candid prophet. His aim was to foretell the coming downfall of the Chaldeans and thereby give encouragement to Judah in her time of crisis. 'The righteous shall live by his faith' is the great teaching of Habakkuk, an original and very significant contribution to the world's theology."
+        ],
+        questions: []
+      },
+      {
+        id: 1,
+        title: "Lesson 1: Jonah",
+        subtitle: "Jonah 1-4",
+        reading: [
+          "The book of Jonah is in four parts, corresponding with its four chapters, showing Jonah's disobedience, preservation, proclamation, and correction. Much misunderstanding has been in connection with the reason for Jonah's fleeing from God.",
+          "The common idea is that Jonah was a narrow-minded Jew, unwilling to carry a merciful warning from God to a Gentile people, his motives being (1) cowardly fear of going to Nineveh, (2) bigoted prejudice against the Gentiles, (3) selfish jealousy for his own prestige. But it could not be fear that deterred him, for on board ship he shows utter fearlessness of death. Nor was it anti-Gentile prejudice, for he displays immediate compassion toward the idol-worshiping Gentile sailors!",
+          "The real answer is found in Jonah's own words in Jonah 4:2; he did not want God to spare Nineveh! Jonah was ready to forfeit his prophetic office, flee into exile, prepared even to resign life itself, rather than that Nineveh should be spared. First, Assyria was the rising world-power destined to destroy Israel. Second, the notorious brutality of the Assyrians was such as to make surrounding peoples shudder.",
+          "Notice the emphasis on greatness throughout the book: 1:2 - 'that great city'; 1:4 - God hurled a 'great wind'; 1:17 - 'the LORD appointed a great fish'. The response of the king of Nineveh and of his people was also very great. They believed God and called for a fast, 3:5.",
+          "Despite any heroic motive that can be credited to Jonah's disobedience to God, he is nonetheless a vivid example of the carnal Christian. The book abounds with evidences of carnality. Carnality/backsliding are often evidenced by sleep. Jonah slept in the hold of the ship during the storm. Another characteristic is the need for the 'second time' word from God (3:1,2) before obedience. Notice how self-centered Jonah was, using personal pronouns I, me, or my 10 times in 4:2,3.",
+          "Jonah's pouting is seen in 4:4,5 as he sat down to watch what would become of the city. Notice his lighthearted joy when God appointed the plant to come up over Jonah to shade him from the heat, and how quickly he lost his joy when the worm attacked his shade. Carnal Christians are dependent on circumstances for joy, rather than on God Himself.",
+          "The number 120 means 'the end of all flesh.' The flesh and the Spirit are in constant conflict, and it is of interest that the book ends with God mentioning His desire to spare 'Nineveh, that great city, in which there are more than 120,000 persons who do not know their right hand from their left...' (4:11)."
+        ],
+        questions: [
+          ...makeTF('q1', [
+            "The heathen, as well as the offspring of Abraham are included in God's plan to save the lost.",
+            "Jonah was delighted when Nineveh was saved.",
+            "Nineveh was a tiny, unimportant city.",
+            "The heathen mariners were not religious in any way.",
+            "Jonah denied to them that he was a Hebrew who feared the LORD.",
+            "Jonah suggested they throw him into the ocean.",
+            "The heathen sailors prayed unto the LORD.",
+            "The sailors offered a sacrifice and made vows to the LORD.",
+            "The Jonah story is a myth, and was not mentioned by Christ.",
+            "The great fish was appointed by God.",
+            "Affliction finally caused Jonah to pray.",
+            "The weeds were wrapped about Jonah's head.",
+            "Inside the fish, Jonah's soul so fainted, it was impossible for him to offer a sacrifice to God of thanksgiving.",
+            "Jonah's deliverance from the fish was by the Word of the LORD.",
+            "When the king called for a fast, he excluded the children and animals.",
+            "God never relents, even when people repent.",
+            "Twice in chapter 4 Jonah became suicidal.",
+            "God appointed a plant, a worm, and a scorching east wind."
+          ], ['True','False','False','False','False','True','True','True','False','True','True','True','False','True','False','False','True','True']),
+          
+          makeMatch('q1', '1', "Match the following:",
+            [
+              'A word meaning "universal"', 'The Old Testament counterpart to John 3:16', 'The capital of Assyria', 'A cruel nation, destined to destroy Israel', 'Of what Jonah is a type among Christians', 'To where Jonah intended to flee from God', 'What the sailors threw out before casting out Jonah', 'What Jonah did during the storm', 'How they discerned Jonah\'s disobedience', 'Knew Jonah fled from the presence of God', 'What Jonah did inside the fish\'s belly', 'How many times the call to preach came to Jonah', 'How soon God intended to destroy the city', 'The king\'s response to Jonah\'s message', 'Jonah\'s response to God\'s mercy', 'Where Jonah went after delivering his message', 'Where Jonah sat to watch what would happen', 'Why the plant withered', 'Why Jonah was angry and suicidal', 'Of what 120 is a type', 'Of what 40 is a type', 'Of what 3 is a type', 'How many people were in Nineveh', 'A New Testament preacher who was from Tarsus who also preached to Gentiles'
+            ],
+            [
+              "Wares / Cargo", "Cast lots", "Carnal Christian", "Catholicity", "Slept", "Tarshish", "Jonah", "Assyria", "Nineveh", "Paul", "Testing", "Withered plant", "Over 120,000", "Prayed", "End of flesh", "Sailors", "Argumentative", "Power of God / Resurrection", "Booth", "Two", "A worm", "40 days", "East side", "Fasted"
+            ],
+            {'1':'d', '2':'g', '3':'i', '4':'h', '5':'c', '6':'f', '7':'a', '8':'e', '9':'b', '10':'p', '11':'n', '12':'t', '13':'v', '14':'x', '15':'q', '16':'w', '17':'s', '18':'u', '19':'l', '20':'o', '21':'k', '22':'r', '23':'m', '24':'j'}
+          ),
+
+          ...makeShort('q1', [
+            "Give the main theme of the four books (Jonah, Micah, Nahum, Habakkuk)",
+            "Give three arguments against the common ideas of why Jonah fled",
+            "Give two reasons Jonah wanted Nineveh destroyed",
+            "List ten characteristics of the carnal Christian manifested by Jonah",
+            "List God's responses to Nineveh's repentance",
+            "List five things God appointed (prepared) for Jonah"
+          ], [
+            "Jonah: prophet of catholicity. Micah: prophet of the poor. Nahum: poetic prophet. Habakkuk: prophetic philosopher.",
+            "1. Fearlessly urged mariners to cast him overboard. 2. Immediate compassion to Gentile sailors. 3. Ready to forfeit prophetic office and life.",
+            "1. Assyria was destined to destroy Israel. 2. The notorious cruelty of Assyrians.",
+            "Flight from God, slept instead of praying, needed a second word, displeased when Nineveh repented, self-centered, arguing with God, pouting, joy depending on conditions, extreme joy/anger, suicidal, cared more for personal comfort than people.",
+            "Saw their works; repented of the evil; did it not.",
+            "Mighty tempest; a great fish; a gourd; a worm; a vehement east wind."
+          ]),
+
+          ...makeFill('q1', [
+            "Jonah was the son of",
+            "While Jonah was trying to flee to Tarshish, name another preacher from Tarsus in a storm at sea:",
+            "What the shipmaster first said to Jonah when the storm struck:",
+            "Inside the fish, Jonah declared what happens to those who pay regard to vain idols, they forsake their hope of:",
+            "With what Jonah said he would sacrifice unto God:",
+            "What God's second word to Jonah commanded him to do:",
+            "Jonah's response to the city's repentance:",
+            "Jonah had more pity on the ________ than the people."
+          ], [
+            "Amittai", "Paul", "What meanest thou o sleeper? Arise, call on thy God!", "mercy", "Voice of thanksgiving", "Arise, go preach to Nineveh", "Anger", "gourd"
+          ])
+        ]
+      },
+      {
+        id: 2,
+        title: "Lesson 2: Micah 1-3",
+        subtitle: "Imminent Judgment Declared",
+        reading: [
+          "Micah is the only minor prophet who addressed his message to both Israel and Judah. His discourse is brief, but it contains one of the most important Old Testament prophecies: a comprehensive description of the Messiah, His nature, kingdom, and work.",
+          "Micah prophesied a few years after Hosea and Amos, during the reigns of Jotham, Ahaz, and Hezekiah, but before the fall of Samaria (722 B.C.). He was a contemporary of Isaiah. Isaiah was a man of the city, brought up in Jerusalem. Micah was born in a lowly village with a message to the poor. While Isaiah's message focused on world politics, Micah confined his gaze largely to Judah and Israel. He was the great prophet of social reform.",
+          "In his opening prophecy, Micah mentioned at least ten towns and villages near his home. The meaning of the names of these towns heightened the effect of his poetry. 'Gath' means 'weeptown'; 'Aphrah' means 'dusthouse'; 'Saphir' means 'beautytown'.",
+          "The central thought of the book is present judgment (chapters 1-3), but future blessing (chapters 4-7). Micah's greatest denunciation was the sin of oppression and he found the idle rich the most guilty. Prosperity, growing out of the years of peace under Uzziah, had created a new class of wealthy men. Infatuated with their sudden fortune, they had become greedy and cruel.",
+          "The prophet likened such exploitation of the poor to a cannibal feast. He then pointed out the false prophets behind the idle, rich, and corrupt politicians. Living on the bounty of the idle-rich and basking in the favor of a depraved government, the false prophets justified the wicked for a reward, winked at their vices, and shared in their corruption.",
+          "Micah's message consisted of sharp denunciation and unrelieved doom. He was the first of the prophets to threaten Jerusalem with destruction (3:12)."
+        ],
+        questions: [
+          ...makeFill('q2', [
+            "The only minor prophet addressing both Israel and Judah",
+            "When Micah prophesied relative to Hosea and Amos",
+            "With whom he was a contemporary",
+            "Meaning of 'Gath'",
+            "Meaning of 'Aphrah'",
+            "Meaning of 'Saphir'",
+            "Chief subjects of his messages",
+            "Central thought of the book",
+            "Micah's greatest denunciation",
+            "Whom he found the most guilty",
+            "Instead of protecting the poor, defended the exploiters",
+            "Justified the wicked and winked at their vices",
+            "Three kings of Judah during Micah's time",
+            "From where God was to witness against them",
+            "What was the transgression of Jacob?",
+            "What were the high places of Judah?",
+            "For whom it is to know judgment",
+            "The secret of Micah's boldness"
+          ], [
+            "Micah", "A few years after them", "Isaiah", "Weeptown", "Dusthouse", "Beautytown", "Samaria and Jerusalem", "Present judgment but future blessing", "Sin of oppression", "Idle rich", "The rulers", "False prophets", "Jotham, Ahaz, Hezekiah", "His holy temple", "Samaria", "Jerusalem", "Heads of Jacob & princes of Israel", "I am full of power by the spirit of the Lord"
+          ]),
+
+          makeMatch('q2', '1', "Match the following:",
+            [
+              "Micah was the first of the prophets to threaten with destruction", "Was to become as a heap of the field", "All to be beaten to pieces", "Waited for good, but evil came", "For whom they were to make bald", "What they coveted and took by violence", "Do good to him who walks uprightly", "They cast out from their houses", "Had taken away God's glory from", "God to gather as a flock of Bozrah", "Is on the head of them", "Hate the good and love the evil", "For which God will not hear their cries", "That make the people err", "What the false prophets cry", "Night shall replace the", "Who shall be ashamed", "Who shall be confounded", "Why they shall all cover their lips", "Who judged for reward", "Who taught for hire", "To be plowed as a field for their sakes", "What Jerusalem was to become", "What the mountain of the house was to become"
+            ],
+            [
+              "Zion", "Vision", "Peace", "Jerusalem", "As high places", "Samaria", "Diviners", "As heaps", "The heads", "Maroth", "God's Words", "The priests", "The children", "Graven images", "Delicate children", "The women", "Ruler's cruelties", "Remnant", "Fields, houses", "The seers", "Princes", "No answer of God", "False prophets", "The Lord"
+            ],
+            {'1':'d', '2':'f', '3':'n', '4':'j', '5':'o', '6':'s', '7':'k', '8':'p', '9':'m', '10':'r', '11':'x', '12':'u', '13':'q', '14':'w', '15':'c', '16':'b', '17':'t', '18':'g', '19':'v', '20':'i', '21':'l', '22':'a', '23':'h', '24':'e'}
+          ),
+
+          ...makeTF('q2', [
+            "Micah had no insight into the coming of the Messiah.",
+            "Micah prophesied after the fall of Samaria.",
+            "Micah was a contemporary of Jeremiah.",
+            "Micah was the Morasthite.",
+            "The valleys were to be cleft as wax before the fire.",
+            "Micah was to wail as dragons and mourn as the owls.",
+            "Though his intercession was intense, he was unwilling to go stripped and naked.",
+            "Gath was told to weep.",
+            "They even worked iniquity on their beds.",
+            "It was a good time, not evil.",
+            "God's people had become as an enemy.",
+            "They were told not to depart for this was their rest.",
+            "Micah saw them broken up and passed through the gate.",
+            "The princes plucked off their skin and their flesh from off their bones.",
+            "There were no cannibals in the land.",
+            "God hid His face from them.",
+            "Despite the darkness, vision was still strong.",
+            "Micah was full of power to declare the nation's sins.",
+            "The princes perverted equity and abhorred judgment.",
+            "While covetous after wealth, the heads, the priests, and the prophets still leaned upon the LORD."
+          ], ['False','False','False','True','True','True','False','False','True','False','True','False','True','True','False','True','False','True','True','True'])
+        ]
+      },
+      {
+        id: 3,
+        title: "Lesson 3: Micah 4-7",
+        subtitle: "Ultimate Blessing Promised",
+        reading: [
+          "Possessed of strong convictions, Micah showed corresponding courage. The secret of his power is told in 3:8, 'But as for me, I am filled with power, with the Spirit of the LORD, and with justice and might' (ESV). He fearlessly uncovered sin and pointed to Christ. After proclaiming judgment, he told of a brighter and better day. He described the golden age of perpetual peace in which all nations of the earth will participate.",
+          "Micah's great Messianic prophecy predicts the birthplace of our Lord. Though uttered seven hundred years prior to Messiah's birth, it is one of the five major prophesies relative to this event and is found in Micah 5:2. Isaiah had predicted Christ's virgin birth (7:14); Micah predicted his village birth, Bethlehem, the birthplace of David.",
+          "God's government is in His church. Some of the mightiest truths in the Old Testament are expressed in Micah. While having no human understanding of God's plan for the church, Micah's prophecy of the 'latter days' (4:1,2) is a clear prophetic word concerning the restored church in her glory.",
+          "Chapters 6 and 7 are a dialogue of the Lord's controversy, vindicating His providence. The people felt God was hard and grasping. By cruel and mistaken methods, they had been trying to propitiate Him by even offering the fruit of their bodies for the sins of their souls (6:7).",
+          "It is to this that God responds in 6:8, 'He has told you, O man, what is good; and what does the LORD require of you but to do justice, and to love kindness, and to walk humbly with your God?' This verse contains the three requirements of all true religion. Micah sums up comprehensively in these three phrases the cardinal teachings of Moses."
+        ],
+        questions: [
+          ...makeShort('q3', [
+            "In order to show Israel and Jacob their sins and transgressions, of what three things was Micah full?",
+            "List the five major prophecies relative to the birth of Christ.",
+            "List the three requirements that Micah said God had shown man.",
+            "Give the two requirements that Jesus taught (Matthew 22:35-40).",
+            "List the two requirements given by James (James 1:27)."
+          ], [
+            "Power, judgment, might (3:8)",
+            "1. Shiloh prophecy - tribe of Judah. 2. Nathan's prophecy - house of David. 3. Daniel's prophecy - the time. 4. Micah's prophecy - the place (Bethlehem). 5. Isaiah - virgin birth.",
+            "Do justly, love mercy, walk humbly (6:8)",
+            "Love God wholeheartedly; Love your neighbor as yourself",
+            "To visit the afflicted fatherless; keep unspotted from the world"
+          ]),
+
+          makeMatch('q3', '1', "Match the following:",
+            [
+              "Secret to Micah's power", "From where the law shall go forth", "When the mountain of the House of the Lord shall be established", "What they will beat their swords into", "Where every man shall sit", "How all people shall walk", "What she who halted will become", "The stronghold of Zion", "Little among the thousands of Judah", "He was to tread in their palaces", "To be wasted in the entrances thereof", "The remnant of Jacob to be as", "The scattered remnant among the Gentiles to be as", "Would happen to Israel's enemies", "What God had going with His people", "King of Moab who wanted Israel cursed", "Backslidden prophet to whom a donkey spoke", "The kind of measure abominable to God", "What the rich men were full of", "In whose counsels the nation had walked wickedly", "Had perished out of the earth", "What they wrapped up", "When the decree of judgment would be removed", "What God would subdue in triumph"
+            ],
+            [
+              "Violence", "Balaam", "Balak", "Spirit of God", "Vines & fig trees", "Iniquities", "Ahab", "Name of Lord", "Zion", "Mischievous", "Good men", "Last days", "Remnant", "Walls rebuilt", "Bethlehem", "Plowshares", "Tower of the flock", "Nimrod", "Assyrian", "Scant", "Controversy", "Dew & showers", "Cut off", "Lion"
+            ],
+            {'1':'d', '2':'i', '3':'l', '4':'p', '5':'e', '6':'h', '7':'m', '8':'q', '9':'o', '10':'s', '11':'w', '12':'v', '13':'x', '14':'w', '15':'u', '16':'c', '17':'b', '18':'t', '19':'a', '20':'g', '21':'k', '22':'j', '23':'n', '24':'f'}
+          ),
+
+          ...makeTF('q3', [
+            "Micah's prophecy predicted Christ's birthplace 700 years beforehand.",
+            "Micah predicted Christ's virgin birth, Isaiah His village birth.",
+            "Mountains and hills symbolize weakness in Scripture.",
+            "Micah prophesied of the restored church in glory.",
+            "God has no government on the earth.",
+            "The nation of Israel was a shadow or type of the church.",
+            "God's progressive revelation is usually gradual.",
+            "Crystalizing around partial truth is usually the result of rejecting God's larger revelation.",
+            "God never flows on as a river.",
+            "God had no controversy with Israel.",
+            "Israel even gave their bodies for their sins, to no avail.",
+            "David was the constant ideal of the theocracy in Israel.",
+            "Micah prophesied that the daughter of Zion would go even to Babylon.",
+            "He said he would make her horn brass and her hoofs iron.",
+            "He called the daughter of Zion 'troops.'",
+            "Travail in Scripture speaks of intercessory prayer. Travail is mentioned in both chapter four and chapter five.",
+            "God would cut off witchcraft and idolatry and execute vengeance on the heathen.",
+            "Micah does not mention Moses, Aaron, or Miriam.",
+            "God never makes anyone sick, regardless of their sins.",
+            "They even hunted their brothers with a net."
+          ], ['True','False','False','True','False','True','True','True','False','False','False','True','True','True','True','True','True','False','False','True']),
+
+          ...makeFill('q3', [
+            "What does the LORD require of you but to do ________",
+            "Shall I acquit the man with wicked scales and with a bag of ________",
+            "But the earth will be desolate... for the fruit of ________",
+            "Who is a God like you... he does not retain his ________",
+            "You will cast all our sins ________"
+          ], [
+            "justly, and to love mercy, and to walk humbly with thy God?", "deceitful weights?", "their doings", "anger forever, because He delighteth in mercy", "into the depths of the sea"
+          ])
+        ]
+      },
+      {
+        id: 4,
+        title: "Lesson 4: Nahum",
+        subtitle: "Nineveh's Doom Declared",
+        reading: [
+          "The book of Nahum is a continuation of Jonah and is part of the same moral history. While Jonah recorded the repentance of Nineveh, Nahum predicted its destruction. The catastrophe is so great, no other nation claims the prophet's attention.",
+          "Assyria had been the feared and hated oppressor for nearly two centuries. Their kings were cruel, and their captives were gruesomely killed. They were known to be more aggressive, more idolatrous, more wicked and barbaric than any other nation in ancient international history. At the time of Nahum's ministry, Assyria was at the zenith of power.",
+          "Little is known of the prophet. His name means consolation or comfort, significant in view of the comfort his prophecies brought to Judah and Israel.",
+          "The city of Nineveh was founded by Nimrod of Babylonia, and was dedicated to the god Istar. It was trebly fortified by walls and moats. The exceedingly cruel Esarhaddon was Nineveh's last king. History records how the last night of the besieged city was spent in drunken orgies. To precipitate the catastrophe, the Tigris overflowed, breaking breaches in the walls, and the king set fire to his palace, burning himself alive.",
+          "Though the LORD is 'slow to anger' (1:3), yet their day of doom is certain. The Almighty has pledged Himself to avenge right against wrong.",
+          "Unlike all the other prophetic books, Nahum ends without any mention or thought of restoration. Since Nineveh did not repent this time, she ceased to exist as a result. Repentance alone brings God's mercy and grace."
+        ],
+        questions: [
+          makeMatch('q4', '1', "Match the following:",
+            [
+              "A book of which Nahum is a continuation", "What God reserves for His enemies", "What makes up the dust of God's feet", "What happens to the earth at God's presence", "What God is in the day of trouble", "What will pursue God's enemies", "How the drunkards shall be devoured", "What shall not rise up the second time", "What Judah was told to keep", "To what Nineveh was likened", "Upon what they stumble", "Who had sold families through witchcraft", "What God was going to show the nations", "Whose strength were Ethiopia and Egypt", "Were dashed in pieces at the top of the streets", "For whom lots were cast", "Were bound in chains", "Like fig trees falling into mouth of eater", "Were set wide open to their enemies", "What the fire would devour", "What would eat them up like a cankerworm", "What they had multiplied their merchants as", "Flee when the sun arises", "A description of their shepherds"
+            ],
+            [
+              "Stars", "Harlot", "Slumber", "Feasts & vows", "Captains", "Jonah", "Gates", "Darkness", "Sword", "Wrath", "Nineveh's nakedness", "Their bars", "No's children", "Burned", "All strongholds", "Corpses", "Clouds", "Dry stubble", "No (Thebes)", "Men of honor", "A pool", "Affliction", "All great men", "A stronghold"
+            ],
+            {'1':'f', '2':'j', '3':'q', '4':'n', '5':'x', '6':'h', '7':'r', '8':'v', '9':'d', '10':'u', '11':'p', '12':'b', '13':'k', '14':'s', '15':'m', '16':'t', '17':'w', '18':'o', '19':'g', '20':'l', '21':'i', '22':'a', '23':'e', '24':'c'}
+          ),
+
+          ...makeShort('q4', [
+            "From 2:6 show what two calamities God used to destroy Nineveh",
+            "List two things of which the bloody city was full",
+            "The final three punishments given (Nahum 3:19)"
+          ], [
+            "Flooded Tigris River broke open the gates; King burned palace",
+            "Lies and robbery",
+            "No healing, their wounds were grievous, all that hear clap their hands"
+          ]),
+
+          ...makeTF('q4', [
+            "Nahum prophesied concerning many nations.",
+            "For two centuries Assyria had been known as a nation of kindness and mercy.",
+            "Israel and Judah were delighted with Nahum's prophecies.",
+            "Nineveh was dedicated to a heathen god.",
+            "The city was trebly fortified.",
+            "After two years of siege, when Esarhaddon saw doom, he committed suicide.",
+            "Nineveh was part of the most savage, sensual, cruel men in history.",
+            "Nineveh is a thriving city today.",
+            "Nahum's prophecies identified him with God's government of justice.",
+            "God is slow to anger.",
+            "God frequently gives amnesty to the wicked.",
+            "Nahum is a book of restoration.",
+            "The book shows God's vindication of right against wrong."
+          ], ['False','False','True','True','True','True','True','False','True','True','False','False','True']),
+
+          ...makeMC('q4', [
+            "The capital of Assyria was",
+            "Under whose ministry Nineveh had previously repented",
+            "Last king of Assyria",
+            "The river that overflowed, bringing doom",
+            "Nahum's name means",
+            "Founded the city of Nineveh",
+            "Marched by Nineveh, unaware that an empire was buried under his feet",
+            "Had carried away Israel's ten tribes captives",
+            "Had carried away Judah captive",
+            "Today's remains of Nineveh"
+          ], [
+            ['Samaria', 'Nineveh', 'Shushan'],
+            ['Isaiah', 'Nahum', 'Jonah'],
+            ['Belteshazar', 'Esarhaddon', 'Ashurbonnapal'],
+            ['Jordan', 'Euphrates', 'Tigris'],
+            ['Consolation', 'Prayer', 'Repentance'],
+            ['Ishmael', 'Esau', 'Nimrod'],
+            ['Nebuchadnezzar', 'Belteshazar', 'Alexander the Great'],
+            ['Assyria', 'Persia', 'Media'],
+            ['Assyria', 'Babylonia', 'Ammon'],
+            ['Palace ruins', 'Two mounds', 'A temple']
+          ], ['Nineveh', 'Jonah', 'Esarhaddon', 'Tigris', 'Consolation', 'Nimrod', 'Alexander the Great', 'Assyria', 'Babylonia', 'Two mounds'])
+        ]
+      },
+      {
+        id: 5,
+        title: "Lesson 5: Habakkuk",
+        subtitle: "Faith Grappling with the Problem",
+        reading: [
+          "Habakkuk, a contemporary of Jeremiah, ministered in Judah's darkest hours, during the last two or three decades of the nation. He is considered a prominent member of 'the school of Isaiah'. His name, from the root 'habhak' means 'to embrace.'",
+          "Unlike other prophets, Habakkuk did not address either his own countrymen or a foreign people; his speech was to God alone. His concern was not with delivering a message, but with solving a problem that vexed his soul.",
+          "The focus of the problem and prophecy is Babylon. The prophecy of Obadiah sealed the fate of Edom; the prophecy of Nahum tolled the knell of Assyria; and the prophecy of Habakkuk dug the grave for Babylon.",
+          "The book begins with a sob, and ends with a song. The prophet was beset by a double enigma of divine providence: (1) God's silence, inactivity, and apparent unconcern in the midst of violence. (2) God's use of the wicked Chaldeans to bring to judgment His own people. Why would God punish Judah by means of a people far more wicked and ruthless than the Jews themselves?",
+          "The solution came in the wonderful vision God gave Habakkuk. It was solved by a double pledge received in faith: 'But the righteous shall live by his faith' (2:4) and 'For the earth will be filled with the knowledge of the glory of the LORD as the waters cover the sea' (2:14).",
+          "Habakkuk projected three valuable truths as he passed from his sob of doubt to his song of trust: He told his honest doubt to God alone (Prayer). He determined to wait on God (Waiting). He saw a vision, and broke through to certitude and song (Vision/Praise)."
+        ],
+        questions: [
+          ...makeTF('q5', [
+            "Like Nahum, Habakkuk is addressed to a foreign country.",
+            "His concern was more solving a problem than delivering a message.",
+            "The prophecy of Obadiah sealed the doom of Assyria.",
+            "Like Nahum, the book has no mention of restoration.",
+            "Habakkuk was perplexed because God used the wicked Chaldeans to judge Judah for her sins.",
+            "God answered Habakkuk with a vision."
+          ], ['False','True','False','False','True','True']),
+
+          ...makeFill('q5', [
+            "When Habakkuk ministered",
+            "Meaning of his name",
+            "What he said he would stand upon, so to understand God",
+            "Why he was to plainly write the vision",
+            "When the vision will speak",
+            "Of what the earth shall be filled as the waters cover the sea",
+            "To whom the book was apparently written"
+          ], [
+            "Judah's darkest hour; her last two or three decades", "to embrace", "my watch", "that he may run who reads it", "at the end", "the knowledge of the glory of the Lord", "to the chief singer"
+          ]),
+
+          makeMatch('q5', '1', "Match the following:",
+            [
+              "A contemporary of Habakkuk", "Of whose school a prominent member", "Though beginning with a sob, with what it ends", "What brought Habakkuk's solution", "By what the just shall live", "How many times the above is quoted in N.T.", "With what the earth shall be filled", "Whom God used to judge Judah", "Whom God used to prophecy judgment to the above", "What the book begins with Habakkuk seeing", "Whom the wicked compassed about", "Whom God raised up to possess dwelling places not theirs", "Were more fierce than the evening wolves", "When the vision is read, what is to be done", "What the vision will not do", "What makes a man as death that can't be satisfied", "What shall cry out of the wall", "What shall answer it", "For what people weary themselves", "With what they were filled instead of glory", "Whose violence would cover them", "Upon what the prophet sang with his prayer", "What happened to the mountains", "What happened to the hills", "Description of God's ways", "Our feet are made like whose feet that will not slide upon the mountains"
+            ],
+            [
+              "Bowed", "Hinds'", "Burden", "Vanity", "Shigionoth", "Jeremiah", "The stone", "Everlasting", "Isaiah", "Habakkuk", "Scattered", "Shame", "Song", "Wine", "Babylon", "Vision", "The righteous", "Tarry", "Faith", "Chaldeans", "Knowledge of God's glory", "Lebanon", "The beam", "Run with it", "Three", "Their horses"
+            ],
+            {'1':'f', '2':'i', '3':'m', '4':'p', '5':'s', '6':'y', '7':'u', '8':'t', '9':'j', '10':'c', '11':'q', '12':'t', '13':'z', '14':'x', '15':'r', '16':'n', '17':'g', '18':'w', '19':'d', '20':'l', '21':'v', '22':'e', '23':'k', '24':'a', '25':'h', '26':'b'}
+          ),
+
+          ...makeShort('q5', [
+            "Name three prophets who sealed the doom of three nations, and list the nations",
+            "List Habakkuk's two perplexities (his double enigma)",
+            "His solution came through a double vision with a double pledge, list them"
+          ], [
+            "Obadiah to Edom; Nahum to Assyria; Habakkuk to Babylon",
+            "God's apparent silence and unconcern at rampant violence. Why God punished Judah by the wicked Chaldeans.",
+            "'The just shall live by his faith'. 'For the earth shall be filled with the knowledge of the glory of the Lord as the waters cover the sea'."
+          ])
+        ]
+      }
+    ];
+
+    // --- FINAL EXAM DATA ---
+    const examData = {
+      title: "Final Exam",
+      subtitle: "Unit 10: Minor Prophets",
+      questions: [
+        ...makeShort('ex', ["Theme Verse - Write out word perfect and give reference:"], ["For the earth shall be filled with the knowledge of the glory of the Lord, as the waters cover the sea. Habakkuk 2:14"]),
+        ...makeFill('ex', [
+          "Jonah - prophet of ________ to Nineveh",
+          "Micah - prophet of the ________ to Judah and Israel",
+          "Nahum - ________ prophet to Nineveh",
+          "Habakkuk - prophetic ________ - to God about judgment of Babylon",
+          "The capital of Assyria is ________",
+          "God intended to destroy the city in ________ days",
+          "The king responded to Jonah's preaching with a ________",
+          "120 is a type of the ________",
+          "The New Testament preacher who was from Tarshish was ________",
+          "The first of the prophets to threaten the destruction of Jerusalem is ________",
+          "________ was a contemporary of Micah",
+          "Nahum is a continuation of the book of ________",
+          "God will not ________ the wicked",
+          "________ was a very cruel, and barbaric nation",
+          "Nahum's name means ________",
+          "________ was the founder of the city of Nineveh",
+          "Nineveh's last king was ________",
+          "The book of ________ does not end with restoration",
+          "________ alone brings God's mercy and grace",
+          "________ was a contemporary of Habakkuk",
+          "Habakkuk's name means to ________",
+          "Habakkuk made his speech to ________",
+          "Obadiah spoke of the judgment of ________",
+          "Habakkuk's prophecy related to ________",
+          "Jonah responded to Nineveh's repentance with ________",
+          "Jonah is a type of a ________ Christian",
+          "Micah said I am full of power by the ________ of the Lord",
+          "Micah's prophecies pointed mostly to the ________",
+          "God's government today is in the ________",
+          "The law will go forth from ________",
+          "Esarhaddon committed ________",
+          "Nineveh previously repented under ________ ministry",
+          "The ten tribes of Israel were carried away by the ________",
+          "Babylonia carried away ________",
+          "Habakkuk said our feet are made like ________ feet"
+        ], [
+          "Catholicity", "poor", "poetic", "philosopher", "Nineveh", "40", "Fast", "End of flesh", "Paul", "Micah", "Isaiah", "Jonah", "Acquit", "Assyria", "Comfort", "Nimrod", "Esarhaddon", "Nahum", "Repentance", "Jeremiah", "embrace", "God", "Edom", "Babylon", "Anger", "carnal", "Spirit", "idle rich", "church", "Zion", "suicide", "Jonah's", "Assyrians", "Judah", "hinds'"
+        ]),
+        
+        makeMatch('ex', '1', "Match the following:",
+          [
+            "The capital of Assyria", "How soon God intended to destroy the city", "The king's response to Jonah's preaching", "Of what 120 is a type", "A N.T. preacher from Tarshish who preached to Gentiles", "The first of the prophets to threaten the destruction of Jerusalem", "Of whom Micah was a contemporary", "A book of which Nahum is a continuation", "What God will not do to the wicked", "A very cruel, barbaric nation", "The meaning of Nahum's name", "By whom the city of Nineveh was founded", "Nineveh's last king", "The one minor prophet that ends without restoration", "Alone brings God's mercy and grace", "Of whom Habakkuk was a contemporary", "Meaning of Habakkuk's name", "To whom Habakkuk made his speech", "A prophet who spoke judgment to Edom", "To whom Habakkuk's prophecy related"
+          ],
+          [
+            "Isaiah", "Assyria", "Babylon", "Comfort", "Repentance", "Nineveh", "Obadiah", "Jeremiah", "Acquit", "40 days", "God alone", "Paul", "To embrace", "Jonah", "Fasted", "Nimrod", "End of flesh", "Nahum", "Micah", "Esarhaddon"
+          ],
+          {'1':'f', '2':'j', '3':'o', '4':'q', '5':'l', '6':'s', '7':'a', '8':'n', '9':'i', '10':'b', '11':'d', '12':'p', '13':'t', '14':'r', '15':'e', '16':'h', '17':'m', '18':'k', '19':'g', '20':'c'}
+        ),
+
+        ...makeMC('ex', [
+          "In the whale's belly Jonah",
+          "Jonah's response to Nineveh's repentance",
+          "Of what Jonah is a type",
+          "Said 'I am full of power by the Spirit of the Lord'",
+          "Only minor prophet addressing both Israel and Judah",
+          "To whom most of Micah's prophecies pointed",
+          "Where god's government is today",
+          "From where the Law is to go forth",
+          "A city dedicated to the god Istar",
+          "A king who committed suicide",
+          "Under whose ministry Nineveh had previously repented",
+          "Had carried away Israel's ten tribes captive",
+          "Had carried away Judah captive",
+          "Habakkuk said our feet are made like whose feet"
+        ], [
+          ['slept', 'prayed', 'cursed'],
+          ['anger', 'joy', 'apathy'],
+          ['on fire Christian', 'carnal Christian', 'sinner'],
+          ['Jonah', 'Micah', 'Nahum'],
+          ['Jonah', 'Micah', 'Nahum'],
+          ['the idle rich', 'adulterers', 'thieves'],
+          ['in nations', 'in politics', 'in the church'],
+          ['Samaria', 'Zion', 'USA'],
+          ['Samaria', 'Jerusalem', 'Nineveh'],
+          ['Esarhaddon', 'Hezekiah', 'Josiah'],
+          ['Micah', 'Nahum', 'Jonah'],
+          ['Assyria', 'Persia', 'Media'],
+          ['Assyria', 'Babylonia', 'Ammon'],
+          ['hinds', 'dogs', 'cats']
+        ], ['b', 'a', 'b', 'b', 'b', 'a', 'c', 'b', 'c', 'a', 'c', 'a', 'b', 'a']),
+
+        ...makeTF('ex', [
+          "The heathen, as well as the seed of Abraham are included in God's plan to save the lost.",
+          "Jonah was delighted when Nineveh repented and was saved.",
+          "The heathen sailors in Jonah were not religious in any way.",
+          "The validity of the Jonah account is supported by the New Testament.",
+          "When a spirit of praise and thanksgiving overwhelmed Jonah, the whale spued him out by the Word of the Lord.",
+          "When the king of Nineveh proclaimed a fast, he excluded the children.",
+          "Micah prophesied after the fall of Samaria.",
+          "Micah told the false prophets they would be without a vision.",
+          "Israel and Judah were delighted with Nahum's prophecies.",
+          "God told Habakkuk to make the vision plain and easily understood."
+        ], ['True','False','False','True','True','False','False','True','False','True'])
+      ]
+    };
+
+    // --- MAIN APPLICATION COMPONENT ---
+    function App() {
+      const [isAuthenticated, setIsAuthenticated] = useState(false);
+      const [studentName, setStudentName] = useState("");
+      const [loginError, setLoginError] = useState("");
+
+      const [currentView, setCurrentView] = useState("dashboard"); 
+      const [activeLessonId, setActiveLessonId] = useState(0);
+      const [lessonTab, setLessonTab] = useState('reading'); // Defaulting to reading
+
+      const [progress, setProgress] = useState({
+        watchedVideos: [],
+        completedHomework: [],
+        homeworkAnswers: {},
+        examAnswers: {},
+        examCompleted: false,
+        examScore: 0
+      });
+
+      useEffect(() => { window.scrollTo(0, 0); }, [activeLessonId, currentView, lessonTab]);
+
+      // ---- GRADING LOGIC ----
+      const videoPoints = progress.watchedVideos.length * 6.6;
+      let hwPoints = 0;
+      
+      const realLessons = courseData.filter(l => l.id > 0);
+
+      realLessons.forEach(lesson => {
+        const isSubmitted = progress.completedHomework.includes(lesson.id);
+        let answeredCount = 0;
+        
+        lesson.questions.forEach(q => {
+          if (q.type === 'match') {
+            const allMatched = q.left.every(item => progress.homeworkAnswers[q.id] && progress.homeworkAnswers[q.id][item.id]);
+            if (allMatched) answeredCount++;
+          } else {
+            if (progress.homeworkAnswers[q.id] && progress.homeworkAnswers[q.id].toString().trim() !== '') answeredCount++;
+          }
+        });
+        
+        if (isSubmitted && lesson.questions.length > 0) {
+          const completionRatio = answeredCount / lesson.questions.length;
+          hwPoints += (completionRatio * 6.6); 
+        }
+      });
+
+      const examPoints = progress.examCompleted ? (progress.examScore * 0.34) : 0;
+      const calculateTotalGrade = () => {
+        let total = videoPoints + hwPoints + examPoints;
+        return total > 99.5 ? 100 : total.toFixed(1);
+      };
+
+      const isExamUnlocked = progress.watchedVideos.length === realLessons.length && progress.completedHomework.length === realLessons.length;
+
+      // ---- HANDLERS ----
+      const handleLogin = (e) => {
+        e.preventDefault();
+        const code = e.target.code.value;
+        if (code.toUpperCase() === 'UNIT10') {
+          setStudentName(e.target.name.value);
+          setIsAuthenticated(true);
+          setLoginError("");
+        } else setLoginError("Invalid Access Code. Please try 'UNIT10'.");
+      };
+
+      const markVideoWatched = (id) => {
+        if (!progress.watchedVideos.includes(id)) {
+          setProgress(prev => ({ ...prev, watchedVideos: [...prev.watchedVideos, id] }));
+        }
+        setLessonTab('reading');
+      };
+
+      const handleHWChange = (qId, val) => setProgress(prev => ({...prev, homeworkAnswers: { ...prev.homeworkAnswers, [qId]: val }}));
+      const handleHWMatch = (qId, lId, rVal) => setProgress(prev => ({...prev, homeworkAnswers: { ...prev.homeworkAnswers, [qId]: {...(prev.homeworkAnswers[qId]||{}), [lId]: rVal} }}));
+      const submitHomework = (id) => {
+        if (!progress.completedHomework.includes(id)) setProgress(prev => ({ ...prev, completedHomework: [...prev.completedHomework, id] }));
+        window.scrollTo(0, 0);
+      };
+
+      const handleExamChange = (qId, val) => setProgress(prev => ({...prev, examAnswers: { ...prev.examAnswers, [qId]: val }}));
+      const handleExamMatch = (qId, lId, rVal) => setProgress(prev => ({...prev, examAnswers: { ...prev.examAnswers, [qId]: {...(prev.examAnswers[qId]||{}), [lId]: rVal} }}));
+      
+      const submitExam = () => {
+        let score = 0;
+        let totalQuestions = 0;
+
+        examData.questions.forEach(q => {
+          const ans = progress.examAnswers[q.id];
+          if (q.type === 'match') {
+            let mScore = 0;
+            q.left.forEach(l => {
+              if (ans && ans[l.id] === q.correct[l.id]) mScore++;
+            });
+            score += (mScore / q.left.length);
+            totalQuestions++;
+          } else if (q.type === 'tf' || q.type === 'mc') {
+            if (ans === q.correct) score++;
+            totalQuestions++;
+          } else {
+            // Free response/Fill-in graded for completion if over 3 chars
+            if (ans && ans.trim().length > 3) score++;
+            totalQuestions++;
+          }
+        });
+
+        const finalScore = (score / totalQuestions) * 100;
+        setProgress(prev => ({ ...prev, examCompleted: true, examScore: finalScore }));
+        setCurrentView('dashboard');
+        
+        // Simulated Webhook integration
+        setTimeout(() => {
+           alert(`WEBHOOK SIMULATION:\n\nPayload Sent to Zapier/Planning Center:\nStudent: ${studentName}\nCourse: Unit 10 Minor Prophets\nFinal Grade: ${(videoPoints + hwPoints + (finalScore*0.34)).toFixed(1)}%\nStatus: Graduated`);
+        }, 500);
+      };
+
+      // ---- RENDER VIEWS ----
+      if (!isAuthenticated) {
+        return (
+          <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
+              <h1 className="text-3xl font-extrabold text-slate-900 mb-2">King's Bible Institute</h1>
+              <p className="text-slate-500 mb-8 font-medium">Online Portal Login</p>
+              
+              <form onSubmit={handleLogin} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Student Name</label>
+                  <input type="text" name="name" required placeholder="John Doe" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Unit Access Code</label>
+                  <input type="text" name="code" required placeholder="UNIT10" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase" />
+                </div>
+                {loginError && <p className="text-rose-500 text-sm font-semibold flex items-center gap-1"><Icon name="AlertCircle" size={16}/> {loginError}</p>}
+                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all">
+                  <Icon name="Lock" size={18}/> Access Course
+                </button>
+              </form>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="flex h-screen overflow-hidden">
+          {/* Sidebar */}
+          <aside className="w-72 bg-slate-900 text-slate-300 flex flex-col shadow-2xl flex-shrink-0 z-20">
+            <div className="p-6 border-b border-slate-800">
+              <h1 className="text-xl font-bold text-white tracking-tight">KBI Online</h1>
+              <p className="text-xs font-bold text-blue-400 mt-1 uppercase tracking-wider">Unit 10: Minor Prophets</p>
+            </div>
+
+            <nav className="flex-1 overflow-y-auto py-4">
+              <div className="px-4 mb-2">
+                <button onClick={() => setCurrentView('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors ${currentView === 'dashboard' ? 'bg-blue-600 text-white' : 'hover:bg-slate-800'}`}>
+                  <Icon name="LayoutDashboard" size={18}/> My Dashboard
+                </button>
+              </div>
+              
+              <div className="px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Learning Modules</div>
+              <ul className="space-y-1">
+                {courseData.map((lesson) => {
+                  const isDone = progress.completedHomework.includes(lesson.id);
+                  const isWatching = progress.watchedVideos.includes(lesson.id) || lesson.id === 0;
+                  return (
+                    <li key={lesson.id} className="px-3">
+                      <button
+                        onClick={() => { setActiveLessonId(lesson.id); setCurrentView('lesson'); setLessonTab(lesson.id === 0 ? 'reading' : 'video'); }}
+                        className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center justify-between ${currentView === 'lesson' && activeLessonId === lesson.id ? 'bg-slate-800 text-white shadow-inner' : 'hover:bg-slate-800/50 hover:text-white'}`}
+                      >
+                        <div className="flex flex-col truncate pr-2">
+                          <span className="font-semibold text-sm truncate">{lesson.title}</span>
+                          <span className="text-[10px] text-slate-500 truncate">{lesson.subtitle}</span>
+                        </div>
+                        {isDone && isWatching && lesson.id > 0 ? <Icon name="CheckCircle" size={16} className="text-emerald-400 flex-shrink-0"/> : null}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <div className="px-3 mt-6">
+                <button 
+                  onClick={() => {
+                     if (isExamUnlocked) setCurrentView('exam');
+                     else alert("You must complete all 5 lectures and submit all 5 homework assignments to unlock the Final Exam.");
+                  }} 
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors border ${
+                    currentView === 'exam' 
+                      ? 'bg-amber-500 text-slate-900 border-amber-500' 
+                      : isExamUnlocked 
+                        ? 'border-slate-700 text-amber-500 hover:bg-slate-800' 
+                        : 'border-slate-800 text-slate-600 bg-slate-800/30'
+                  }`}
+                >
+                  {isExamUnlocked ? <Icon name="Award" size={18}/> : <Icon name="Lock" size={18}/>} 
+                  Final Exam
+                </button>
+              </div>
+            </nav>
+            
+            <div className="p-6 border-t border-slate-800 text-xs">
+              <p className="text-slate-400">Logged in as:</p>
+              <p className="text-white font-bold truncate">{studentName}</p>
+            </div>
+          </aside>
+
+          {/* Main Content Area */}
+          <main className="flex-1 overflow-y-auto relative bg-slate-50">
+            
+            {currentView === 'dashboard' && (
+              <div className="p-8 max-w-5xl mx-auto animate-in fade-in duration-500">
+                <header className="mb-8">
+                  <h1 className="text-4xl font-extrabold text-slate-900 mb-2">Welcome, {studentName}!</h1>
+                  <p className="text-lg text-slate-600">Track your progress and access your coursework below.</p>
+                </header>
+
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-8 flex flex-col md:flex-row gap-8 items-center">
+                  <div className="flex-shrink-0 flex flex-col items-center justify-center w-48 h-48 rounded-full border-8 border-slate-100 relative">
+                    <div className="absolute inset-0 rounded-full border-8 border-blue-600" style={{ clipPath: `polygon(0 0, 100% 0, 100% ${calculateTotalGrade()}%, 0 ${calculateTotalGrade()}%)` }}></div>
+                    <span className="text-4xl font-black text-slate-800 z-10">{calculateTotalGrade()}%</span>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest z-10">Current Grade</span>
+                  </div>
+                  
+                  <div className="flex-1 w-full space-y-4">
+                    <h3 className="text-xl font-bold text-slate-800 border-b pb-2">Grading Rubric</h3>
+                    
+                    <div className="flex justify-between items-center text-sm font-medium">
+                      <span className="text-slate-600">Lectures Watched ({progress.watchedVideos.length}/5)</span>
+                      <span className="text-blue-700 font-bold">{videoPoints.toFixed(1)} / 33%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div className="bg-blue-500 h-full" style={{width: `${(videoPoints / 33) * 100}%`}}></div></div>
+
+                    <div className="flex justify-between items-center text-sm font-medium pt-2">
+                      <span className="text-slate-600">Weekly Homework</span>
+                      <span className="text-blue-700 font-bold">{hwPoints.toFixed(2)} / 33%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div className="bg-blue-500 h-full" style={{width: `${(hwPoints / 33) * 100}%`}}></div></div>
+
+                    <div className="flex justify-between items-center text-sm font-medium pt-2 border-t mt-2">
+                      <span className="text-slate-600">Final Exam Score</span>
+                      <span className="text-slate-400 font-bold">{progress.examCompleted ? examPoints.toFixed(1) : "Pending"} / 34%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentView === 'lesson' && courseData.find(l => l.id === activeLessonId) && (() => {
+              const lesson = courseData.find(l => l.id === activeLessonId);
+              const isHomeworkDone = progress.completedHomework.includes(lesson.id);
+
+              return (
+                <div className="flex flex-col h-full animate-in fade-in duration-300">
+                  <div className="bg-white border-b border-slate-200 sticky top-0 z-10 px-8 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                      <h2 className="text-2xl font-extrabold text-slate-900">{lesson.title}</h2>
+                      <p className="text-sm font-medium text-slate-500">{lesson.subtitle}</p>
+                    </div>
+                    
+                    {lesson.id > 0 && (
+                      <div className="flex bg-slate-100 p-1 rounded-lg w-full md:w-auto">
+                        <button onClick={() => setLessonTab('video')} className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-md text-sm font-bold transition-all ${lessonTab === 'video' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'}`}>
+                          <Icon name="PlayCircle" size={16} /> Lecture
+                        </button>
+                        <button onClick={() => setLessonTab('reading')} className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-md text-sm font-bold transition-all ${lessonTab === 'reading' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'}`}>
+                          <Icon name="BookOpen" size={16} /> Reading
+                        </button>
+                        <button onClick={() => setLessonTab('questions')} className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-md text-sm font-bold transition-all ${lessonTab === 'questions' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'}`}>
+                          <Icon name="Edit3" size={16} /> {isHomeworkDone ? "Review" : "Homework"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-8 max-w-4xl mx-auto w-full pb-32">
+                    
+                    {lessonTab === 'video' && lesson.id > 0 && (
+                      <div className="animate-in slide-in-from-bottom-4">
+                        <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center shadow-lg relative overflow-hidden group">
+                          <Icon name="PlayCircle" size={64} className="text-white opacity-80 group-hover:scale-110 transition-transform cursor-pointer" />
+                          <p className="text-slate-400 mt-4 font-medium">Video Player Integration Placeholder</p>
+                          <p className="text-xs text-slate-500 absolute bottom-4">(Embed YouTube, Vimeo, or Church Streaming link here)</p>
+                        </div>
+                        <div className="mt-8 flex justify-center">
+                          {progress.watchedVideos.includes(lesson.id) ? (
+                            <div className="flex items-center gap-2 text-emerald-600 font-bold bg-emerald-50 px-6 py-3 rounded-full">
+                              <Icon name="CheckCircle" size={20}/> Lecture Marked as Completed
+                            </div>
+                          ) : (
+                            <button onClick={() => markVideoWatched(lesson.id)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-md transition-transform hover:-translate-y-0.5">
+                              Mark Lecture as Watched
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {lessonTab === 'reading' && (
+                      <article className="prose prose-lg prose-slate max-w-none font-serif animate-in slide-in-from-bottom-4">
+                        {lesson.reading.map((block, idx) => React.isValidElement(block) ? React.cloneElement(block, { key: idx }) : <p key={idx} className="leading-relaxed mb-6">{block}</p>)}
+                        {lesson.id > 0 && (
+                          <div className="mt-12 flex justify-center border-t border-slate-200 pt-8">
+                             <button onClick={() => setLessonTab('questions')} className="bg-slate-900 text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-slate-800">
+                               Proceed to Homework <Icon name="ChevronRight" size={18}/>
+                             </button>
+                          </div>
+                        )}
+                      </article>
+                    )}
+
+                    {lessonTab === 'questions' && lesson.id > 0 && (
+                      <div className="animate-in slide-in-from-bottom-4">
+                        {isHomeworkDone && (
+                          <div className="mb-8 bg-emerald-50 border border-emerald-200 rounded-xl p-6 flex gap-4 items-center">
+                            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                              <Icon name="CheckCircle" size={28} className="text-emerald-600"/>
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-bold text-emerald-900">Homework Submitted!</h3>
+                              <p className="text-emerald-700 text-sm font-medium">The correct answers have been revealed below to help you study for the final exam.</p>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="space-y-8">
+                          {lesson.questions.map((q, idx) => {
+                            const answer = progress.homeworkAnswers[q.id] || '';
+                            
+                            return (
+                              <div key={q.id} className={`bg-white rounded-xl shadow-sm border overflow-hidden ${isHomeworkDone ? 'border-slate-200 opacity-90' : 'border-slate-300'}`}>
+                                <div className="p-6">
+                                  <label className="text-lg font-bold text-slate-800 block mb-4 whitespace-pre-line">{q.prompt}</label>
+                                  
+                                  {q.type === 'tf' && (
+                                    <div className="flex gap-3">
+                                      {['True', 'False'].map(opt => (
+                                        <button key={opt} disabled={isHomeworkDone} onClick={() => handleHWChange(q.id, opt)} className={`flex-1 py-3 px-4 rounded-lg border-2 font-bold transition-colors ${answer === opt ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-500'} ${isHomeworkDone ? 'cursor-not-allowed' : 'hover:border-blue-300'}`}>
+                                          {opt}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {q.type === 'mc' && (
+                                    <div className="flex flex-col gap-2">
+                                      {q.options.map((opt, i) => {
+                                        const letter = String.fromCharCode(97 + i);
+                                        return (
+                                          <button key={opt} disabled={isHomeworkDone} onClick={() => handleHWChange(q.id, opt)} className={`text-left py-3 px-4 rounded-lg border-2 font-semibold transition-colors ${answer === opt ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600'} ${isHomeworkDone ? 'cursor-not-allowed' : 'hover:border-blue-300'}`}>
+                                            <span className="font-bold mr-2 uppercase">{letter}.</span> {opt}
+                                          </button>
+                                        )
+                                      })}
+                                    </div>
+                                  )}
+
+                                  {(q.type === 'blank' || q.type === 'short') && (
+                                    <textarea disabled={isHomeworkDone} value={answer} onChange={(e) => handleHWChange(q.id, e.target.value)} placeholder="Type answer..." rows={q.type==='blank'?1:3} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-70 disabled:bg-slate-100" />
+                                  )}
+
+                                  {q.type === 'match' && (
+                                    <div>
+                                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6 text-sm text-slate-600">
+                                        <div className="font-semibold mb-2 flex items-center gap-2"><Icon name="AlertCircle" size={16}/> Options Bank:</div>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                          {q.right.map(opt => (
+                                            <div key={opt.id} className="truncate" title={opt.text}><span className="font-bold text-slate-800 mr-1">{opt.id}.</span> {opt.text}</div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <div className="grid gap-4 md:grid-cols-2">
+                                        {q.left.map((leftItem) => (
+                                          <div key={leftItem.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
+                                            <div className="flex-1 text-slate-700 font-medium text-sm"><span className="text-slate-400 mr-2">{leftItem.id}.</span> {leftItem.text}</div>
+                                            <select disabled={isHomeworkDone} value={(answer && answer[leftItem.id]) || ""} onChange={(e) => handleHWMatch(q.id, leftItem.id, e.target.value)} className="w-full sm:w-32 px-3 py-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold">
+                                              <option value="">Select...</option>
+                                              {q.right.map(r => <option key={r.id} value={r.id}>{r.id}</option>)}
+                                            </select>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* REVEAL CORRECT ANSWER (Only if submitted) */}
+                                  {isHomeworkDone && q.correct && (
+                                    <div className="mt-4 bg-slate-100 rounded-lg p-4 border-l-4 border-emerald-500 flex flex-col">
+                                      <span className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 flex items-center gap-1"><Icon name="CheckCircle" size={12}/> Correct Answer</span>
+                                      {q.type === 'match' ? (
+                                        <div className="text-sm font-medium text-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                                          {q.left.map(l => {
+                                            const rightId = q.correct[l.id];
+                                            const rightText = q.right.find(r => r.id === rightId)?.text;
+                                            return <div key={l.id} className="truncate"><span className="text-emerald-600 font-bold">{l.id} &rarr; {rightId}</span> ({rightText})</div>
+                                          })}
+                                        </div>
+                                      ) : (
+                                        <span className="text-slate-800 font-semibold whitespace-pre-line">{q.correct}</span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        {!isHomeworkDone && (
+                          <div className="mt-10 flex justify-end">
+                             <button onClick={() => submitHomework(lesson.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-4 rounded-xl font-black shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full sm:w-auto">
+                               Submit Homework
+                             </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* --- VIEW: EXAM --- */}
+            {currentView === 'exam' && (
+               <div className="p-8 max-w-4xl mx-auto animate-in fade-in duration-500 pb-32">
+                  <header className="mb-8 text-center bg-slate-900 text-white p-12 rounded-2xl shadow-xl">
+                    <Icon name="Award" size={48} className="mx-auto text-amber-500 mb-4" />
+                    <h1 className="text-4xl font-black mb-2">Final Exam</h1>
+                    <p className="text-slate-300 text-lg">{examData.subtitle}</p>
+                  </header>
+
+                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+                    {!progress.examCompleted ? (
+                      <div>
+                        <p className="text-slate-600 mb-8 text-lg font-medium leading-relaxed text-center border-b pb-8">
+                          The final exam consists of 45 questions drawn from the reading assignments and weekly homework. It accounts for 34% of your final grade.
+                        </p>
+                        
+                        <div className="space-y-8">
+                          {examData.questions.map((q, idx) => {
+                            const answer = progress.examAnswers[q.id] || '';
+                            return (
+                              <div key={q.id} className="bg-white rounded-xl shadow-sm border border-slate-300 overflow-hidden">
+                                <div className="p-6">
+                                  <label className="text-lg font-bold text-slate-800 block mb-4">{q.prompt}</label>
+                                  
+                                  {q.type === 'tf' && (
+                                    <div className="flex gap-3">
+                                      {['True', 'False'].map(opt => (
+                                        <button key={opt} onClick={() => handleExamChange(q.id, opt)} className={`flex-1 py-3 px-4 rounded-lg border-2 font-bold transition-colors ${answer === opt ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-500 hover:border-blue-300'}`}>{opt}</button>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {q.type === 'mc' && (
+                                    <div className="flex flex-col gap-2">
+                                      {q.options.map((opt, i) => {
+                                        const letter = String.fromCharCode(97 + i);
+                                        return (
+                                          <button key={opt} onClick={() => handleExamChange(q.id, letter)} className={`text-left py-3 px-4 rounded-lg border-2 font-semibold transition-colors ${answer === letter ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600 hover:border-blue-300'}`}>
+                                            <span className="font-bold mr-2 uppercase">{letter}.</span> {opt}
+                                          </button>
+                                        )
+                                      })}
+                                    </div>
+                                  )}
+
+                                  {(q.type === 'blank' || q.type === 'short') && (
+                                    <textarea value={answer} onChange={(e) => handleExamChange(q.id, e.target.value)} placeholder="Type answer..." rows={q.type==='blank'?1:3} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                                  )}
+
+                                  {q.type === 'match' && (
+                                    <div>
+                                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6 text-sm text-slate-600">
+                                        <div className="font-semibold mb-2 flex items-center gap-2"><Icon name="AlertCircle" size={16}/> Options Bank:</div>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                          {q.right.map(opt => (
+                                            <div key={opt.id} className="truncate" title={opt.text}><span className="font-bold text-slate-800 mr-1">{opt.id}.</span> {opt.text}</div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <div className="grid gap-4 md:grid-cols-2">
+                                        {q.left.map((leftItem) => (
+                                          <div key={leftItem.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
+                                            <div className="flex-1 text-slate-700 font-medium text-sm"><span className="text-slate-400 mr-2">{leftItem.id}.</span> {leftItem.text}</div>
+                                            <select value={(answer && answer[leftItem.id]) || ""} onChange={(e) => handleExamMatch(q.id, leftItem.id, e.target.value)} className="w-full sm:w-32 px-3 py-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold">
+                                              <option value="">Select...</option>
+                                              {q.right.map(r => <option key={r.id} value={r.id}>{r.id}</option>)}
+                                            </select>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <div className="mt-12 flex justify-center">
+                          <button onClick={submitExam} className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-black px-12 py-4 rounded-full shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
+                            <Icon name="Check" size={20}/> Submit Final Exam
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-emerald-50 text-emerald-800 p-8 rounded-xl font-bold border border-emerald-200 text-center">
+                        <Icon name="Award" size={48} className="mx-auto text-emerald-500 mb-4" />
+                        <h3 className="text-2xl mb-2">Exam Completed!</h3>
+                        <p className="font-medium text-emerald-700 mb-6">You scored {progress.examScore.toFixed(1)}%. Check your Dashboard for your total grade.</p>
+                        <span className="text-sm font-medium text-emerald-600 bg-emerald-100 px-4 py-2 rounded-full inline-block">Integration Note: A webhook would now send your grade to Planning Center.</span>
+                      </div>
+                    )}
+                  </div>
+               </div>
+            )}
+
+          </main>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
