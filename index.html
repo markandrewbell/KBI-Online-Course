@@ -2,12 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>King's Bible Institute - Portal</title>
+  
+  <!-- Load Tailwind CSS for styling -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Load React -->
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  
+  <!-- Load Babel to compile JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
   <style>
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -16,10 +23,13 @@
   </style>
 </head>
 <body class="bg-slate-100 text-slate-900 font-sans antialiased">
+  
   <div id="root"></div>
+
   <script type="text/babel">
     const { useState, useEffect } = React;
 
+    // --- SVG Icons ---
     const Icon = ({ name, size = 24, className = "" }) => {
       const icons = {
         Menu: <><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></>,
@@ -36,10 +46,14 @@
         LayoutDashboard: <><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></>,
         Check: <><polyline points="20 6 9 17 4 12"/></>
       };
-      return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{icons[name]}</svg>;
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          {icons[name]}
+        </svg>
+      );
     };
 
-    // --- DATA HELPERS ---
+    // --- DATA BUILDER HELPERS ---
     const makeTF = (pfx, prompts, answers) => prompts.map((p, i) => ({ id: `${pfx}_tf_${i+1}`, type: 'tf', prompt: `${i+1}. ${p}`, correct: answers[i] }));
     const makeFill = (pfx, prompts, answers) => prompts.map((p, i) => ({ id: `${pfx}_fill_${i+1}`, type: 'blank', prompt: `${i+1}. ${p}`, correct: answers[i] }));
     const makeShort = (pfx, prompts, answers) => prompts.map((p, i) => ({ id: `${pfx}_short_${i+1}`, type: 'short', prompt: `${i+1}. ${p}`, correct: answers ? answers[i] : '' }));
@@ -51,12 +65,12 @@
       {
         id: 0, title: "Introduction to the Books", subtitle: "Foreword, Objectives & Overview",
         reading: [
-          <h2 className="text-2xl font-bold text-slate-900 mt-4 mb-4 border-b pb-2">Foreword</h2>,
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900 mt-4 mb-4 border-b pb-2">Foreword</h2>,
           "Except for Micah, who addressed his messages to both Israel and Judah, each of these four minor prophets focused his attention on a foreign people. Jonah and Nahum on Nineveh, and Habakkuk on Chaldea. These three minor prophets hardly referred to any nations other than those to whom they prophesied. Despite their prophetic warnings and rebukes, evident throughout each book is the continued stream of restoration promise.",
-          <div className="bg-blue-50 border-l-4 border-blue-600 p-5 my-8 rounded-r-lg shadow-sm"><p className="text-xs font-bold text-blue-900 uppercase tracking-widest mb-2 flex items-center gap-2"><Icon name="Bookmark" size={14} /> Theme Verse</p><p className="text-xl text-blue-800 italic font-serif leading-relaxed">"For the earth will be filled with the knowledge of the glory of the LORD as the waters cover the sea."</p><p className="text-right text-blue-900 font-semibold mt-3">— Habakkuk 2:14 (ESV)</p></div>,
-          <h2 className="text-2xl font-bold text-slate-900 mt-12 mb-4 border-b pb-2">All 133 Messianic Prophecies Were Fulfilled</h2>,
+          <div className="bg-blue-50 border-l-4 border-blue-600 p-4 md:p-5 my-8 rounded-r-lg shadow-sm"><p className="text-xs font-bold text-blue-900 uppercase tracking-widest mb-2 flex items-center gap-2"><Icon name="Bookmark" size={14} /> Theme Verse</p><p className="text-lg md:text-xl text-blue-800 italic font-serif leading-relaxed">"For the earth will be filled with the knowledge of the glory of the LORD as the waters cover the sea."</p><p className="text-right text-blue-900 font-semibold mt-3 text-sm">— Habakkuk 2:14 (ESV)</p></div>,
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900 mt-12 mb-4 border-b pb-2">All 133 Messianic Prophecies Were Fulfilled</h2>,
           "Each detail of a prophecy doubles the chances of the prediction not coming to pass. A prediction with two details has one chance in four of coming to pass. This shows how impossible it would be for many of the lengthy prophecies of Scripture to be fulfilled apart from divine power.",
-          <h2 className="text-2xl font-bold text-slate-900 mt-12 mb-4 border-b pb-2">Introduction to the Books</h2>,
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900 mt-12 mb-4 border-b pb-2">Introduction to the Books</h2>,
           "Our four books are characteristic of the men whose names they bear: Jonah, the prophet of catholicity; Micah, the prophet of the poor; Nahum, the prophetic poet; Habakkuk, the prophetic philosopher.",
           "The word 'catholicity' should be understood without any sectarian overtones, for it really means 'universal', and this is the chief lesson of the book of Jonah. Micah, the prophet to the poor, was preeminently a friend of the oppressed. Nahum, the poet, is counted a master of Hebrew style. Habakkuk, the philosopher, was an earnest, candid prophet."
         ],
@@ -127,10 +141,9 @@
         id: 4, title: "Lesson 4: Nahum", subtitle: "Nineveh's Doom Declared", youtubeId: "YOUR_YOUTUBE_ID_HERE",
         reading: [
           "The book of Nahum is a continuation of Jonah and is part of the same moral history. While Jonah recorded the repentance of Nineveh, Nahum predicted its destruction.",
-          "Assyria had been the feared and hated oppressor for nearly two centuries. Their kings were cruel, and their captives were gruesomely killed. They were known to be more aggressive, more idolatrous, more wicked and barbaric than any other nation in ancient international history. At the time of Nahum's ministry, Assyria was at the zenith of power.",
+          "Assyria had been the feared and hated oppressor for nearly two centuries. Their kings were cruel, and their captives were gruesomely killed. At the time of Nahum's ministry, Assyria was at the zenith of power.",
           "Little is known of the prophet. His name means consolation or comfort, significant in view of the comfort his prophecies brought to Judah and Israel.",
           "The exceedingly cruel Esarhaddon was Nineveh's last king. History records how the last night of the besieged city was spent in drunken orgies. To precipitate the catastrophe, the Tigris overflowed, breaking breaches in the walls, and the king set fire to his palace, burning himself alive.",
-          "Though the LORD is 'slow to anger' (1:3), yet their day of doom is certain. The Almighty has pledged Himself to avenge right against wrong.",
           "Unlike all the other prophetic books, Nahum ends without any mention or thought of restoration. Since Nineveh did not repent this time, she ceased to exist as a result. Repentance alone brings God's mercy and grace."
         ],
         questions: [
@@ -148,10 +161,10 @@
         id: 5, title: "Lesson 5: Habakkuk", subtitle: "Faith Grappling with the Problem", youtubeId: "YOUR_YOUTUBE_ID_HERE",
         reading: [
           "Habakkuk, a contemporary of Jeremiah, ministered in Judah's darkest hours. His name, from the root 'habhak' means 'to embrace.'",
-          "Unlike other prophets, Habakkuk did not address either his own countrymen or a foreign people; his speech was to God alone. His concern was not with delivering a message, but with solving a problem that vexed his soul.",
+          "Unlike other prophets, Habakkuk did not address either his own countrymen or a foreign people; his speech was to God alone.",
           "The focus of the problem and prophecy is Babylon. The prophecy of Obadiah sealed the fate of Edom; the prophecy of Nahum tolled the knell of Assyria; and the prophecy of Habakkuk dug the grave for Babylon.",
-          "The book begins with a sob, and ends with a song. The prophet was beset by a double enigma of divine providence: (1) God's silence, inactivity, and apparent unconcern in the midst of violence. (2) God's use of the wicked Chaldeans to bring to judgment His own people.",
-          "The solution came in the wonderful vision God gave Habakkuk. It was solved by a double pledge received in faith: 'But the righteous shall live by his faith' (2:4) and 'For the earth will be filled with the knowledge of the glory of the LORD as the waters cover the sea' (2:14)."
+          "The book begins with a sob, and ends with a song. The prophet was beset by a double enigma of divine providence: (1) God's silence in the midst of violence. (2) God's use of the wicked Chaldeans to bring to judgment His own people.",
+          "The solution came in the wonderful vision God gave Habakkuk. It was solved by a double pledge received in faith: 'But the righteous shall live by his faith' (2:4) and 'For the earth will be filled with the knowledge of the glory of the LORD' (2:14)."
         ],
         questions: [
           ...makeTF('q5', ["Like Nahum, Habakkuk is addressed to a foreign country.","His concern was more solving a problem than delivering a message.","The prophecy of Obadiah sealed the doom of Assyria.","Like Nahum, the book has no mention of restoration.","Habakkuk was perplexed because God used the wicked Chaldeans to judge Judah for her sins.","God answered Habakkuk with a vision."], ['False','True','False','False','True','True']),
@@ -186,18 +199,13 @@
       const [isAuthenticated, setIsAuthenticated] = useState(false);
       const [studentName, setStudentName] = useState("");
       const [loginError, setLoginError] = useState("");
-
+      const [sidebarOpen, setSidebarOpen] = useState(false);
       const [currentView, setCurrentView] = useState("dashboard"); 
       const [activeLessonId, setActiveLessonId] = useState(0);
       const [lessonTab, setLessonTab] = useState('reading');
 
       const [progress, setProgress] = useState({
-        watchedVideos: [],
-        completedHomework: [],
-        homeworkAnswers: {},
-        examAnswers: {},
-        examCompleted: false,
-        examScore: 0
+        watchedVideos: [], completedHomework: [], homeworkAnswers: {}, examAnswers: {}, examCompleted: false, examScore: 0
       });
 
       useEffect(() => { window.scrollTo(0, 0); }, [activeLessonId, currentView, lessonTab]);
@@ -205,7 +213,6 @@
       // ---- GRADING LOGIC ----
       const videoPoints = progress.watchedVideos.length * 6.6;
       let hwPoints = 0;
-      
       const realLessons = courseData.filter(l => l.id > 0);
       const lessonScores = {};
 
@@ -244,16 +251,12 @@
         e.preventDefault();
         const code = e.target.code.value;
         if (code.toUpperCase() === 'UNIT10') {
-          setStudentName(e.target.name.value);
-          setIsAuthenticated(true);
-          setLoginError("");
+          setStudentName(e.target.name.value); setIsAuthenticated(true); setLoginError("");
         } else setLoginError("Invalid Access Code. Please try 'UNIT10'.");
       };
 
       const markVideoWatched = (id) => {
-        if (!progress.watchedVideos.includes(id)) {
-          setProgress(prev => ({ ...prev, watchedVideos: [...prev.watchedVideos, id] }));
-        }
+        if (!progress.watchedVideos.includes(id)) setProgress(prev => ({ ...prev, watchedVideos: [...prev.watchedVideos, id] }));
         setLessonTab('reading');
       };
 
@@ -268,24 +271,17 @@
       const handleExamMatch = (qId, lId, rVal) => setProgress(prev => ({...prev, examAnswers: { ...prev.examAnswers, [qId]: {...(prev.examAnswers[qId]||{}), [lId]: rVal} }}));
       
       const submitExam = () => {
-        let score = 0;
-        let totalQuestions = 0;
-
+        let score = 0; let totalQuestions = 0;
         examData.questions.forEach(q => {
           const ans = progress.examAnswers[q.id];
           if (q.type === 'match') {
             let mScore = 0;
-            q.left.forEach(l => {
-              if (ans && ans[l.id] === q.correct[l.id]) mScore++;
-            });
-            score += (mScore / q.left.length);
-            totalQuestions++;
+            q.left.forEach(l => { if (ans && ans[l.id] === q.correct[l.id]) mScore++; });
+            score += (mScore / q.left.length); totalQuestions++;
           } else if (q.type === 'tf' || q.type === 'mc') {
-            if (ans === q.correct) score++;
-            totalQuestions++;
+            if (ans === q.correct) score++; totalQuestions++;
           } else {
-            if (ans && ans.trim().length > 3) score++;
-            totalQuestions++;
+            if (ans && ans.trim().length > 3) score++; totalQuestions++;
           }
         });
 
@@ -301,12 +297,11 @@
       // ---- RENDER VIEWS ----
       if (!isAuthenticated) {
         return (
-          <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
+          <div className="min-h-[100dvh] flex items-center justify-center bg-slate-900 p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
               <h1 className="text-3xl font-extrabold text-slate-900 mb-2">King's Bible Institute</h1>
               <p className="text-slate-500 mb-8 font-medium">Online Portal Login</p>
-              
               <form onSubmit={handleLogin} className="space-y-5">
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1">Student Name</label>
@@ -327,16 +322,24 @@
       }
 
       return (
-        <div className="flex h-screen overflow-hidden">
-          <aside className="w-72 bg-slate-900 text-slate-300 flex flex-col shadow-2xl flex-shrink-0 z-20">
-            <div className="p-6 border-b border-slate-800">
-              <h1 className="text-xl font-bold text-white tracking-tight">KBI Online</h1>
-              <p className="text-xs font-bold text-blue-400 mt-1 uppercase tracking-wider">Unit 10: Minor Prophets</p>
+        <div className="flex h-[100dvh] overflow-hidden">
+          
+          {/* Mobile Sidebar Overlay */}
+          {sidebarOpen && <div className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+
+          {/* Sidebar Navigation */}
+          <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-slate-900 text-slate-300 flex flex-col shadow-2xl flex-shrink-0 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+            <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+              <div>
+                <h1 className="text-xl font-bold text-white tracking-tight">KBI Online</h1>
+                <p className="text-xs font-bold text-blue-400 mt-1 uppercase tracking-wider">Unit 10: Minor Prophets</p>
+              </div>
+              <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-400 hover:text-white"><Icon name="X" /></button>
             </div>
 
             <nav className="flex-1 overflow-y-auto py-4">
               <div className="px-4 mb-2">
-                <button onClick={() => setCurrentView('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors ${currentView === 'dashboard' ? 'bg-blue-600 text-white' : 'hover:bg-slate-800'}`}>
+                <button onClick={() => {setCurrentView('dashboard'); setSidebarOpen(false);}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors ${currentView === 'dashboard' ? 'bg-blue-600 text-white' : 'hover:bg-slate-800'}`}>
                   <Icon name="LayoutDashboard" size={18}/> My Dashboard
                 </button>
               </div>
@@ -349,7 +352,7 @@
                   return (
                     <li key={lesson.id} className="px-3">
                       <button
-                        onClick={() => { setActiveLessonId(lesson.id); setCurrentView('lesson'); setLessonTab(lesson.id === 0 ? 'reading' : 'video'); }}
+                        onClick={() => { setActiveLessonId(lesson.id); setCurrentView('lesson'); setLessonTab(lesson.id === 0 ? 'reading' : 'video'); setSidebarOpen(false); }}
                         className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center justify-between ${currentView === 'lesson' && activeLessonId === lesson.id ? 'bg-slate-800 text-white shadow-inner' : 'hover:bg-slate-800/50 hover:text-white'}`}
                       >
                         <div className="flex flex-col truncate pr-2">
@@ -366,19 +369,12 @@
               <div className="px-3 mt-6">
                 <button 
                   onClick={() => {
-                     if (isExamUnlocked) setCurrentView('exam');
+                     if (isExamUnlocked) { setCurrentView('exam'); setSidebarOpen(false); }
                      else alert("You must complete all 5 lectures and submit all 5 homework assignments to unlock the Final Exam.");
                   }} 
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors border ${
-                    currentView === 'exam' 
-                      ? 'bg-amber-500 text-slate-900 border-amber-500' 
-                      : isExamUnlocked 
-                        ? 'border-slate-700 text-amber-500 hover:bg-slate-800' 
-                        : 'border-slate-800 text-slate-600 bg-slate-800/30'
-                  }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors border ${currentView === 'exam' ? 'bg-amber-500 text-slate-900 border-amber-500' : isExamUnlocked ? 'border-slate-700 text-amber-500 hover:bg-slate-800' : 'border-slate-800 text-slate-600 bg-slate-800/30'}`}
                 >
-                  {isExamUnlocked ? <Icon name="Award" size={18}/> : <Icon name="Lock" size={18}/>} 
-                  Final Exam
+                  {isExamUnlocked ? <Icon name="Award" size={18}/> : <Icon name="Lock" size={18}/>} Final Exam
                 </button>
               </div>
             </nav>
@@ -389,32 +385,45 @@
             </div>
           </aside>
 
+          {/* Main Content Area */}
           <main className="flex-1 overflow-y-auto relative bg-slate-50">
             
+            {/* Top Bar for Mobile Menu */}
+            <header className="bg-white border-b border-slate-200 shadow-sm z-10 flex-shrink-0">
+              <div className="flex items-center px-4 sm:px-6 h-16 gap-4">
+                <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-md">
+                  <Icon name="Menu" />
+                </button>
+                <h2 className="text-lg font-bold text-slate-800 truncate">
+                  {currentView === 'dashboard' ? 'Dashboard' : currentView === 'exam' ? 'Final Exam' : courseData.find(l => l.id === activeLessonId)?.title}
+                </h2>
+              </div>
+            </header>
+
             {currentView === 'dashboard' && (
-              <div className="p-8 max-w-5xl mx-auto animate-in fade-in duration-500">
-                <header className="mb-8">
-                  <h1 className="text-4xl font-extrabold text-slate-900 mb-2">Welcome, {studentName}!</h1>
-                  <p className="text-lg text-slate-600">Track your progress and access your coursework below.</p>
+              <div className="p-4 md:p-8 max-w-5xl mx-auto animate-in fade-in duration-500">
+                <header className="mb-6 md:mb-8">
+                  <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2">Welcome, {studentName}!</h1>
+                  <p className="text-base md:text-lg text-slate-600">Track your progress and access your coursework below.</p>
                 </header>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-8 flex flex-col md:flex-row gap-8 items-center">
-                  <div className="flex-shrink-0 flex flex-col items-center justify-center w-48 h-48 rounded-full border-8 border-slate-100 relative">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-8 mb-8 flex flex-col md:flex-row gap-6 md:gap-8 items-center">
+                  <div className="flex-shrink-0 flex flex-col items-center justify-center w-40 h-40 md:w-48 md:h-48 rounded-full border-8 border-slate-100 relative">
                     <div className="absolute inset-0 rounded-full border-8 border-blue-600" style={{ clipPath: `polygon(0 0, 100% 0, 100% ${calculateTotalGrade()}%, 0 ${calculateTotalGrade()}%)` }}></div>
-                    <span className="text-4xl font-black text-slate-800 z-10">{calculateTotalGrade()}%</span>
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest z-10">Current Grade</span>
+                    <span className="text-3xl md:text-4xl font-black text-slate-800 z-10">{calculateTotalGrade()}%</span>
+                    <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest z-10 text-center px-2">Current Grade</span>
                   </div>
                   
                   <div className="flex-1 w-full space-y-4">
-                    <h3 className="text-xl font-bold text-slate-800 border-b pb-2">Grading Rubric</h3>
+                    <h3 className="text-lg md:text-xl font-bold text-slate-800 border-b pb-2">Grading Rubric</h3>
                     
-                    <div className="flex justify-between items-center text-sm font-medium">
+                    <div className="flex justify-between items-center text-xs md:text-sm font-medium">
                       <span className="text-slate-600">Lectures Watched ({progress.watchedVideos.length}/5)</span>
                       <span className="text-blue-700 font-bold">{videoPoints.toFixed(1)} / 33%</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div className="bg-blue-500 h-full" style={{width: `${(videoPoints / 33) * 100}%`}}></div></div>
 
-                    <div className="flex justify-between items-center text-sm font-medium pt-3 border-t mt-3">
+                    <div className="flex justify-between items-center text-xs md:text-sm font-medium pt-3 border-t mt-3">
                       <span className="text-slate-600">Weekly Homework</span>
                       <span className="text-blue-700 font-bold">{hwPoints.toFixed(1)} / 33%</span>
                     </div>
@@ -422,16 +431,16 @@
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
                       {realLessons.map(lesson => (
-                        <div key={lesson.id} className="flex justify-between items-center text-xs">
-                          <span className="text-slate-500 font-medium">{lesson.title.split(':')[0]}</span>
-                          <span className={progress.completedHomework.includes(lesson.id) ? "font-bold text-blue-600" : "font-medium text-slate-400"}>
+                        <div key={lesson.id} className="flex justify-between items-center text-[10px] md:text-xs">
+                          <span className="text-slate-500 font-medium truncate pr-2">{lesson.title.split(':')[0]}</span>
+                          <span className={progress.completedHomework.includes(lesson.id) ? "font-bold text-blue-600" : "font-medium text-slate-400 flex-shrink-0"}>
                             {lessonScores[lesson.id].toFixed(1)} <span className="text-slate-400 font-normal">/ 6.6%</span>
                           </span>
                         </div>
                       ))}
                     </div>
 
-                    <div className="flex justify-between items-center text-sm font-medium pt-2 border-t mt-2">
+                    <div className="flex justify-between items-center text-xs md:text-sm font-medium pt-2 border-t mt-2">
                       <span className="text-slate-600">Final Exam Score</span>
                       <span className="text-slate-400 font-bold">{progress.examCompleted ? examPoints.toFixed(1) : "Pending"} / 34%</span>
                     </div>
@@ -446,28 +455,28 @@
 
               return (
                 <div className="flex flex-col h-full animate-in fade-in duration-300">
-                  <div className="bg-white border-b border-slate-200 sticky top-0 z-10 px-8 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                      <h2 className="text-2xl font-extrabold text-slate-900">{lesson.title}</h2>
-                      <p className="text-sm font-medium text-slate-500">{lesson.subtitle}</p>
+                  <div className="bg-white border-b border-slate-200 sticky top-0 z-10 px-4 py-3 md:px-8 md:py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                    <div className="w-full md:w-auto">
+                      <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 truncate">{lesson.title}</h2>
+                      <p className="text-xs md:text-sm font-medium text-slate-500 truncate">{lesson.subtitle}</p>
                     </div>
                     
                     {lesson.id > 0 && (
-                      <div className="flex bg-slate-100 p-1 rounded-lg w-full md:w-auto">
-                        <button onClick={() => setLessonTab('video')} className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-md text-sm font-bold transition-all ${lessonTab === 'video' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'}`}>
-                          <Icon name="PlayCircle" size={16} /> Lecture
+                      <div className="flex bg-slate-100 p-1 rounded-lg w-full md:w-auto shadow-inner">
+                        <button onClick={() => setLessonTab('video')} className={`flex-1 md:flex-none flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 py-2 px-2 md:px-5 rounded-md text-xs md:text-sm font-bold transition-all ${lessonTab === 'video' ? 'bg-white text-blue-700 shadow shadow-slate-200' : 'text-slate-600 hover:text-slate-900'}`}>
+                          <Icon name="PlayCircle" size={18} /> <span className="mt-0.5 md:mt-0">Lecture</span>
                         </button>
-                        <button onClick={() => setLessonTab('reading')} className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-md text-sm font-bold transition-all ${lessonTab === 'reading' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'}`}>
-                          <Icon name="BookOpen" size={16} /> Reading
+                        <button onClick={() => setLessonTab('reading')} className={`flex-1 md:flex-none flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 py-2 px-2 md:px-5 rounded-md text-xs md:text-sm font-bold transition-all ${lessonTab === 'reading' ? 'bg-white text-blue-700 shadow shadow-slate-200' : 'text-slate-600 hover:text-slate-900'}`}>
+                          <Icon name="BookOpen" size={18} /> <span className="mt-0.5 md:mt-0">Reading</span>
                         </button>
-                        <button onClick={() => setLessonTab('questions')} className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-md text-sm font-bold transition-all ${lessonTab === 'questions' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'}`}>
-                          <Icon name="Edit3" size={16} /> {isHomeworkDone ? "Review" : "Homework"}
+                        <button onClick={() => setLessonTab('questions')} className={`flex-1 md:flex-none flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 py-2 px-2 md:px-5 rounded-md text-xs md:text-sm font-bold transition-all ${lessonTab === 'questions' ? 'bg-white text-blue-700 shadow shadow-slate-200' : 'text-slate-600 hover:text-slate-900'}`}>
+                          <Icon name="Edit3" size={18} /> <span className="mt-0.5 md:mt-0">{isHomeworkDone ? "Review" : "Homework"}</span>
                         </button>
                       </div>
                     )}
                   </div>
 
-                  <div className="p-8 max-w-4xl mx-auto w-full pb-32">
+                  <div className="p-4 md:p-8 max-w-4xl mx-auto w-full pb-32">
                     
                     {lessonTab === 'video' && lesson.id > 0 && (
                       <div className="animate-in slide-in-from-bottom-4">
@@ -476,28 +485,27 @@
                             <iframe className="absolute inset-0 w-full h-full" src={`https://www.youtube.com/embed/${lesson.youtubeId}`} title={`${lesson.title} Lecture`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
                           ) : (
                             <div className="flex flex-col items-center justify-center h-full w-full p-4 text-center">
-                              <Icon name="PlayCircle" size={64} className="text-white opacity-80 group-hover:scale-110 transition-transform cursor-pointer mb-4" />
-                              <p className="text-white font-bold text-xl">Video Not Linked Yet</p>
-                              <p className="text-slate-400 text-sm mt-2 max-w-md">Find <code>youtubeId: "YOUR_YOUTUBE_ID_HERE"</code> in the code for this lesson and replace it with your 11-character YouTube video ID.</p>
+                              <Icon name="PlayCircle" size={48} className="text-white opacity-80 mb-4" />
+                              <p className="text-white font-bold text-lg md:text-xl">Video Not Linked Yet</p>
                             </div>
                           )}
                         </div>
                         <div className="mt-8 flex justify-center">
                           {progress.watchedVideos.includes(lesson.id) ? (
-                            <div className="flex items-center gap-2 text-emerald-600 font-bold bg-emerald-50 px-6 py-3 rounded-full"><Icon name="CheckCircle" size={20}/> Lecture Marked as Completed</div>
+                            <div className="flex items-center gap-2 text-emerald-600 font-bold bg-emerald-50 px-6 py-3 rounded-full text-sm md:text-base text-center"><Icon name="CheckCircle" size={20}/> Lecture Marked as Completed</div>
                           ) : (
-                            <button onClick={() => markVideoWatched(lesson.id)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-md transition-transform hover:-translate-y-0.5">Mark Lecture as Watched</button>
+                            <button onClick={() => markVideoWatched(lesson.id)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 md:px-8 rounded-full shadow-md text-sm md:text-base">Mark Lecture as Watched</button>
                           )}
                         </div>
                       </div>
                     )}
 
                     {lessonTab === 'reading' && (
-                      <article className="prose prose-lg prose-slate max-w-none font-serif animate-in slide-in-from-bottom-4">
+                      <article className="prose prose-slate prose-base md:prose-lg max-w-none font-serif break-words animate-in slide-in-from-bottom-4">
                         {lesson.reading.map((block, idx) => React.isValidElement(block) ? React.cloneElement(block, { key: idx }) : <p key={idx} className="leading-relaxed mb-6">{block}</p>)}
                         {lesson.id > 0 && (
                           <div className="mt-12 flex justify-center border-t border-slate-200 pt-8">
-                             <button onClick={() => setLessonTab('questions')} className="bg-slate-900 text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-slate-800">
+                             <button onClick={() => setLessonTab('questions')} className="bg-slate-900 text-white px-6 md:px-8 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-slate-800 text-sm md:text-base">
                                Proceed to Homework <Icon name="ChevronRight" size={18}/>
                              </button>
                           </div>
@@ -508,27 +516,28 @@
                     {lessonTab === 'questions' && lesson.id > 0 && (
                       <div className="animate-in slide-in-from-bottom-4">
                         {isHomeworkDone && (
-                          <div className="mb-8 bg-emerald-50 border border-emerald-200 rounded-xl p-6 flex gap-4 items-center">
-                            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0"><Icon name="CheckCircle" size={28} className="text-emerald-600"/></div>
+                          <div className="mb-6 md:mb-8 bg-emerald-50 border border-emerald-200 rounded-xl p-4 md:p-6 flex flex-col sm:flex-row gap-3 md:gap-4 items-start sm:items-center">
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0"><Icon name="CheckCircle" size={24} className="text-emerald-600"/></div>
                             <div>
-                              <h3 className="text-lg font-bold text-emerald-900">Homework Submitted!</h3>
-                              <p className="text-emerald-700 text-sm font-medium">The correct answers have been revealed below to help you study for the final exam.</p>
+                              <h3 className="text-base md:text-lg font-bold text-emerald-900">Homework Submitted!</h3>
+                              <p className="text-emerald-700 text-xs md:text-sm font-medium mt-1">The correct answers have been revealed below to help you study for the final exam.</p>
                             </div>
                           </div>
                         )}
 
-                        <div className="space-y-8">
+                        <div className="space-y-6 md:space-y-8">
                           {lesson.questions.map((q, idx) => {
                             const answer = progress.homeworkAnswers[q.id] || '';
+                            
                             return (
                               <div key={q.id} className={`bg-white rounded-xl shadow-sm border overflow-hidden ${isHomeworkDone ? 'border-slate-200 opacity-90' : 'border-slate-300'}`}>
-                                <div className="p-6">
-                                  <label className="text-lg font-bold text-slate-800 block mb-4 whitespace-pre-line">{q.prompt}</label>
+                                <div className="p-4 md:p-6">
+                                  <label className="text-base md:text-lg font-bold text-slate-800 block mb-3 md:mb-4 whitespace-pre-line">{q.prompt}</label>
                                   
                                   {q.type === 'tf' && (
-                                    <div className="flex gap-3">
+                                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                                       {['True', 'False'].map(opt => (
-                                        <button key={opt} disabled={isHomeworkDone} onClick={() => handleHWChange(q.id, opt)} className={`flex-1 py-3 px-4 rounded-lg border-2 font-bold transition-colors ${answer === opt ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-500'} ${isHomeworkDone ? 'cursor-not-allowed' : 'hover:border-blue-300'}`}>{opt}</button>
+                                        <button key={opt} disabled={isHomeworkDone} onClick={() => handleHWChange(q.id, opt)} className={`flex-1 py-3 px-4 rounded-lg border-2 font-bold transition-colors text-sm md:text-base ${answer === opt ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-500'} ${isHomeworkDone ? 'cursor-not-allowed' : 'hover:border-blue-300'}`}>{opt}</button>
                                       ))}
                                     </div>
                                   )}
@@ -538,7 +547,7 @@
                                       {q.options.map((opt, i) => {
                                         const letter = String.fromCharCode(97 + i);
                                         return (
-                                          <button key={opt} disabled={isHomeworkDone} onClick={() => handleHWChange(q.id, opt)} className={`text-left py-3 px-4 rounded-lg border-2 font-semibold transition-colors ${answer === opt ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600'} ${isHomeworkDone ? 'cursor-not-allowed' : 'hover:border-blue-300'}`}>
+                                          <button key={opt} disabled={isHomeworkDone} onClick={() => handleHWChange(q.id, opt)} className={`text-left py-3 px-4 rounded-lg border-2 font-semibold transition-colors text-sm md:text-base ${answer === opt ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600'} ${isHomeworkDone ? 'cursor-not-allowed' : 'hover:border-blue-300'}`}>
                                             <span className="font-bold mr-2 uppercase">{letter}.</span> {opt}
                                           </button>
                                         )
@@ -547,22 +556,22 @@
                                   )}
 
                                   {(q.type === 'blank' || q.type === 'short') && (
-                                    <textarea disabled={isHomeworkDone} value={answer} onChange={(e) => handleHWChange(q.id, e.target.value)} placeholder="Type answer..." rows={q.type==='blank'?1:3} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-70 disabled:bg-slate-100" />
+                                    <textarea disabled={isHomeworkDone} value={answer} onChange={(e) => handleHWChange(q.id, e.target.value)} placeholder="Type answer..." rows={q.type==='blank'?1:3} className="w-full px-3 py-2 md:px-4 md:py-3 bg-slate-50 border border-slate-200 rounded-lg font-medium text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-70 disabled:bg-slate-100" />
                                   )}
 
                                   {q.type === 'match' && (
                                     <div>
-                                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6 text-sm text-slate-600">
-                                        <div className="font-semibold mb-2 flex items-center gap-2"><Icon name="AlertCircle" size={16}/> Options Bank:</div>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                      <div className="bg-slate-50 p-3 md:p-4 rounded-lg border border-slate-200 mb-4 md:mb-6 text-xs md:text-sm text-slate-600">
+                                        <div className="font-semibold mb-2 flex items-center gap-1 md:gap-2"><Icon name="AlertCircle" size={14} /> Options Bank:</div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                                           {q.right.map(opt => <div key={opt.id} className="truncate" title={opt.text}><span className="font-bold text-slate-800 mr-1">{opt.id}.</span> {opt.text}</div>)}
                                         </div>
                                       </div>
-                                      <div className="grid gap-4 md:grid-cols-2">
+                                      <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
                                         {q.left.map((leftItem) => (
-                                          <div key={leftItem.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
-                                            <div className="flex-1 text-slate-700 font-medium text-sm"><span className="text-slate-400 mr-2">{leftItem.id}.</span> {leftItem.text}</div>
-                                            <select disabled={isHomeworkDone} value={(answer && answer[leftItem.id]) || ""} onChange={(e) => handleHWMatch(q.id, leftItem.id, e.target.value)} className="w-full sm:w-32 px-3 py-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold">
+                                          <div key={leftItem.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
+                                            <div className="flex-1 text-slate-700 font-medium text-xs md:text-sm leading-snug"><span className="text-slate-400 mr-1 md:mr-2">{leftItem.id}.</span> {leftItem.text}</div>
+                                            <select disabled={isHomeworkDone} value={(answer && answer[leftItem.id]) || ""} onChange={(e) => handleHWMatch(q.id, leftItem.id, e.target.value)} className="w-full sm:w-28 md:w-32 px-2 py-2 md:px-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs md:text-sm font-semibold">
                                               <option value="">Select...</option>
                                               {q.right.map(r => <option key={r.id} value={r.id}>{r.id}</option>)}
                                             </select>
@@ -572,11 +581,12 @@
                                     </div>
                                   )}
 
+                                  {/* REVEAL CORRECT ANSWER (Only if submitted) */}
                                   {isHomeworkDone && q.correct && (
-                                    <div className="mt-4 bg-slate-100 rounded-lg p-4 border-l-4 border-emerald-500 flex flex-col">
-                                      <span className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 flex items-center gap-1"><Icon name="CheckCircle" size={12}/> Correct Answer</span>
+                                    <div className="mt-4 bg-slate-100 rounded-lg p-3 md:p-4 border-l-4 border-emerald-500 flex flex-col">
+                                      <span className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 flex items-center gap-1"><Icon name="CheckCircle" size={12}/> Correct Answer</span>
                                       {q.type === 'match' ? (
-                                        <div className="text-sm font-medium text-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                                        <div className="text-xs md:text-sm font-medium text-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mt-1">
                                           {q.left.map(l => {
                                             const rightId = q.correct[l.id];
                                             const rightText = q.right.find(r => r.id === rightId)?.text;
@@ -584,7 +594,7 @@
                                           })}
                                         </div>
                                       ) : (
-                                        <span className="text-slate-800 font-semibold whitespace-pre-line">{q.correct}</span>
+                                        <span className="text-sm md:text-base text-slate-800 font-semibold whitespace-pre-line">{q.correct}</span>
                                       )}
                                     </div>
                                   )}
@@ -595,8 +605,8 @@
                         </div>
                         
                         {!isHomeworkDone && (
-                          <div className="mt-10 flex justify-end">
-                             <button onClick={() => submitHomework(lesson.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-4 rounded-xl font-black shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full sm:w-auto">Submit Homework</button>
+                          <div className="mt-8 md:mt-10 flex justify-end">
+                             <button onClick={() => submitHomework(lesson.id)} className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-6 md:px-10 py-3 md:py-4 rounded-xl font-black shadow-lg hover:shadow-xl transition-all sm:hover:-translate-y-1 text-sm md:text-base">Submit Homework</button>
                           </div>
                         )}
                       </div>
@@ -606,33 +616,34 @@
               );
             })()}
 
+            {/* --- VIEW: EXAM --- */}
             {currentView === 'exam' && (
-               <div className="p-8 max-w-4xl mx-auto animate-in fade-in duration-500 pb-32">
-                  <header className="mb-8 text-center bg-slate-900 text-white p-12 rounded-2xl shadow-xl">
-                    <Icon name="Award" size={48} className="mx-auto text-amber-500 mb-4" />
-                    <h1 className="text-4xl font-black mb-2">Final Exam</h1>
-                    <p className="text-slate-300 text-lg">{examData.subtitle}</p>
+               <div className="p-4 md:p-8 max-w-4xl mx-auto animate-in fade-in duration-500 pb-32">
+                  <header className="mb-6 md:mb-8 text-center bg-slate-900 text-white p-8 md:p-12 rounded-2xl shadow-xl">
+                    <Icon name="Award" size={40} className="mx-auto text-amber-500 mb-3 md:mb-4" />
+                    <h1 className="text-2xl md:text-4xl font-black mb-1 md:mb-2">Final Exam</h1>
+                    <p className="text-slate-300 text-sm md:text-lg">{examData.subtitle}</p>
                   </header>
 
-                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 md:p-8">
                     {!progress.examCompleted ? (
                       <div>
-                        <p className="text-slate-600 mb-8 text-lg font-medium leading-relaxed text-center border-b pb-8">
+                        <p className="text-slate-600 mb-6 md:mb-8 text-sm md:text-lg font-medium leading-relaxed text-center border-b pb-6 md:pb-8">
                           The final exam consists of 45 questions drawn from the reading assignments and weekly homework. It accounts for 34% of your final grade.
                         </p>
                         
-                        <div className="space-y-8">
+                        <div className="space-y-6 md:space-y-8">
                           {examData.questions.map((q, idx) => {
                             const answer = progress.examAnswers[q.id] || '';
                             return (
                               <div key={q.id} className="bg-white rounded-xl shadow-sm border border-slate-300 overflow-hidden">
-                                <div className="p-6">
-                                  <label className="text-lg font-bold text-slate-800 block mb-4">{q.prompt}</label>
+                                <div className="p-4 md:p-6">
+                                  <label className="text-base md:text-lg font-bold text-slate-800 block mb-3 md:mb-4">{q.prompt}</label>
                                   
                                   {q.type === 'tf' && (
-                                    <div className="flex gap-3">
+                                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                                       {['True', 'False'].map(opt => (
-                                        <button key={opt} onClick={() => handleExamChange(q.id, opt)} className={`flex-1 py-3 px-4 rounded-lg border-2 font-bold transition-colors ${answer === opt ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-500 hover:border-blue-300'}`}>{opt}</button>
+                                        <button key={opt} onClick={() => handleExamChange(q.id, opt)} className={`flex-1 py-3 px-4 rounded-lg border-2 font-bold transition-colors text-sm md:text-base ${answer === opt ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-500 hover:border-blue-300'}`}>{opt}</button>
                                       ))}
                                     </div>
                                   )}
@@ -642,7 +653,7 @@
                                       {q.options.map((opt, i) => {
                                         const letter = String.fromCharCode(97 + i);
                                         return (
-                                          <button key={opt} onClick={() => handleExamChange(q.id, letter)} className={`text-left py-3 px-4 rounded-lg border-2 font-semibold transition-colors ${answer === letter ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600 hover:border-blue-300'}`}>
+                                          <button key={opt} onClick={() => handleExamChange(q.id, letter)} className={`text-left py-3 px-4 rounded-lg border-2 font-semibold transition-colors text-sm md:text-base ${answer === letter ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600 hover:border-blue-300'}`}>
                                             <span className="font-bold mr-2 uppercase">{letter}.</span> {opt}
                                           </button>
                                         )
@@ -651,22 +662,22 @@
                                   )}
 
                                   {(q.type === 'blank' || q.type === 'short') && (
-                                    <textarea value={answer} onChange={(e) => handleExamChange(q.id, e.target.value)} placeholder="Type answer..." rows={q.type==='blank'?1:3} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                                    <textarea value={answer} onChange={(e) => handleExamChange(q.id, e.target.value)} placeholder="Type answer..." rows={q.type==='blank'?1:3} className="w-full px-3 py-2 md:px-4 md:py-3 bg-slate-50 border border-slate-200 rounded-lg font-medium text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
                                   )}
 
                                   {q.type === 'match' && (
                                     <div>
-                                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6 text-sm text-slate-600">
-                                        <div className="font-semibold mb-2 flex items-center gap-2"><Icon name="AlertCircle" size={16}/> Options Bank:</div>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                      <div className="bg-slate-50 p-3 md:p-4 rounded-lg border border-slate-200 mb-4 md:mb-6 text-xs md:text-sm text-slate-600">
+                                        <div className="font-semibold mb-2 flex items-center gap-1 md:gap-2"><Icon name="AlertCircle" size={14}/> Options Bank:</div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                                           {q.right.map(opt => <div key={opt.id} className="truncate" title={opt.text}><span className="font-bold text-slate-800 mr-1">{opt.id}.</span> {opt.text}</div>)}
                                         </div>
                                       </div>
-                                      <div className="grid gap-4 md:grid-cols-2">
+                                      <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
                                         {q.left.map((leftItem) => (
-                                          <div key={leftItem.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
-                                            <div className="flex-1 text-slate-700 font-medium text-sm"><span className="text-slate-400 mr-2">{leftItem.id}.</span> {leftItem.text}</div>
-                                            <select value={(answer && answer[leftItem.id]) || ""} onChange={(e) => handleExamMatch(q.id, leftItem.id, e.target.value)} className="w-full sm:w-32 px-3 py-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold">
+                                          <div key={leftItem.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
+                                            <div className="flex-1 text-slate-700 font-medium text-xs md:text-sm leading-snug"><span className="text-slate-400 mr-1 md:mr-2">{leftItem.id}.</span> {leftItem.text}</div>
+                                            <select value={(answer && answer[leftItem.id]) || ""} onChange={(e) => handleExamMatch(q.id, leftItem.id, e.target.value)} className="w-full sm:w-28 md:w-32 px-2 py-2 md:px-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs md:text-sm font-semibold">
                                               <option value="">Select...</option>
                                               {q.right.map(r => <option key={r.id} value={r.id}>{r.id}</option>)}
                                             </select>
@@ -681,18 +692,18 @@
                           })}
                         </div>
 
-                        <div className="mt-12 flex justify-center">
-                          <button onClick={submitExam} className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-black px-12 py-4 rounded-full shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
+                        <div className="mt-8 md:mt-12 flex justify-center">
+                          <button onClick={submitExam} className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-slate-900 font-black px-8 md:px-12 py-3 md:py-4 rounded-full shadow-lg transition-transform sm:hover:scale-105 flex items-center justify-center gap-2 text-sm md:text-base">
                             <Icon name="Check" size={20}/> Submit Final Exam
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-emerald-50 text-emerald-800 p-8 rounded-xl font-bold border border-emerald-200 text-center">
+                      <div className="bg-emerald-50 text-emerald-800 p-6 md:p-8 rounded-xl font-bold border border-emerald-200 text-center">
                         <Icon name="Award" size={48} className="mx-auto text-emerald-500 mb-4" />
-                        <h3 className="text-2xl mb-2">Exam Completed!</h3>
-                        <p className="font-medium text-emerald-700 mb-6">You scored {progress.examScore.toFixed(1)}%. Check your Dashboard for your total grade.</p>
-                        <span className="text-sm font-medium text-emerald-600 bg-emerald-100 px-4 py-2 rounded-full inline-block">Integration Note: A webhook would now send your grade to Planning Center.</span>
+                        <h3 className="text-xl md:text-2xl mb-2">Exam Completed!</h3>
+                        <p className="font-medium text-emerald-700 mb-6 text-sm md:text-base">You scored {progress.examScore.toFixed(1)}%. Check your Dashboard for your total grade.</p>
+                        <span className="text-[10px] md:text-sm font-medium text-emerald-600 bg-emerald-100 px-3 py-1 md:px-4 md:py-2 rounded-full inline-block">Integration Note: A webhook would now send your grade to Planning Center.</span>
                       </div>
                     )}
                   </div>
